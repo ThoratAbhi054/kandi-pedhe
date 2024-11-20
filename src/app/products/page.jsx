@@ -39,7 +39,7 @@ import {
   FunnelIcon,
   StarIcon,
 } from "@heroicons/react/20/solid";
-import { API_URL } from "../../../utils/constant";
+import { API_URL } from "../../utils/constant";
 
 const navigation = {
   categories: [
@@ -274,97 +274,7 @@ const sortOptions = [
   { name: "Price: Low to High", href: "#", current: false },
   { name: "Price: High to Low", href: "#", current: false },
 ];
-const products = [
-  {
-    id: 1,
-    name: "Organize Basic Set (Walnut)",
-    price: "$149",
-    rating: 5,
-    reviewCount: 38,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-01.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  {
-    id: 2,
-    name: "Organize Pen Holder",
-    price: "$15",
-    rating: 5,
-    reviewCount: 18,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-02.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  {
-    id: 3,
-    name: "Organize Sticky Note Holder",
-    price: "$15",
-    rating: 5,
-    reviewCount: 14,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-03.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  {
-    id: 4,
-    name: "Organize Phone Holder",
-    price: "$15",
-    rating: 4,
-    reviewCount: 21,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-04.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  {
-    id: 1,
-    name: "Organize Basic Set (Walnut)",
-    price: "$149",
-    rating: 5,
-    reviewCount: 38,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-01.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  {
-    id: 2,
-    name: "Organize Pen Holder",
-    price: "$15",
-    rating: 5,
-    reviewCount: 18,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-02.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  {
-    id: 3,
-    name: "Organize Sticky Note Holder",
-    price: "$15",
-    rating: 5,
-    reviewCount: 14,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-03.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  {
-    id: 4,
-    name: "Organize Phone Holder",
-    price: "$15",
-    rating: 4,
-    reviewCount: 21,
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/category-page-05-image-card-04.jpg",
-    imageAlt: "TODO",
-    href: "#",
-  },
-  // More products...
-];
+
 const footerNavigation = {
   account: [
     { name: "Manage Account", href: "#" },
@@ -399,6 +309,34 @@ function classNames(...classes) {
 
 export default function Example() {
   const [open, setOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+
+  const getProducts = async () => {
+    try {
+      const res = await fetch(`${API_URL}/cms/products/`, {
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          await signOut();
+        }
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setProducts(data); // Store the fetched data in state
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    }
+  };
+
+  useEffect(() => {
+    getProducts();
+  }, []);
 
   return (
     <div className="bg-white">
@@ -751,8 +689,8 @@ export default function Example() {
               >
                 <div className="aspect-h-1 aspect-w-1 overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-75">
                   <img
-                    alt={product.imageAlt}
-                    src={product.imageSrc}
+                    alt={product.title}
+                    src={product.thumbnail}
                     className="h-full w-full object-cover object-center"
                   />
                 </div>
@@ -760,7 +698,7 @@ export default function Example() {
                   <h3 className="text-sm font-medium text-gray-900">
                     <a href={product.href}>
                       <span aria-hidden="true" className="absolute inset-0" />
-                      {product.name}
+                      {product.title}
                     </a>
                   </h3>
                   <div className="mt-3 flex flex-col items-center">

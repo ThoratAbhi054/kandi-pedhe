@@ -16,8 +16,16 @@ import {
 import { StarIcon } from "@heroicons/react/20/solid";
 import { HeartIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useSearchParams } from "next/navigation";
-import { API_URL } from "../../../utils/constant";
+import {
+  API_URL,
+  RAZORPAY_KEY_ID,
+  RAZORPAY_KEY_SECRET,
+} from "../../../utils/constant";
 import { Fragment } from "react";
+import { useRouter } from "next/navigation";
+import { NextRequest, NextResponse } from "next/server";
+import Razorpay from "razorpay";
+
 const reviews = {
   average: 4,
   featured: [
@@ -152,11 +160,26 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function Example() {
+export default function Example(params) {
+  const router = useRouter();
+  const id = params?.params?.productID;
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const searchParams = useSearchParams();
-  const id = searchParams.get("product");
   const [products, setProducts] = useState({});
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("Razorpay SDK loaded"); // Confirm the SDK is loaded
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script); // Clean up the script when component unmounts
+    };
+  }, []);
 
   const getProduct = async () => {
     try {
@@ -178,6 +201,42 @@ export default function Example() {
       setProducts(data); // Store the fetched data in state
     } catch (err) {
       console.error("Error fetching data:", err);
+    }
+  };
+
+  const razorpay = new Razorpay({
+    key_id: RAZORPAY_KEY_ID,
+    key_secret: RAZORPAY_KEY_SECRET,
+  });
+
+  const processPayment = async (product) => {
+    try {
+      const options = {
+        key: "YOUR_RAZORPAY_KEY_ID", // Replace with your Razorpay key ID
+        amount: product.discounted_price * 100, // Amount in paise (INR)
+        currency: "INR",
+        name: "Your Company Name",
+        description: `Payment for ${product.title}`,
+        image: "https://example.com/your_logo.png", // Optional: Add your logo URL
+
+        prefill: {
+          name: "Customer Name", // Example: Replace with customer name
+          email: "customer@example.com", // Example: Replace with customer email
+          contact: "9999999999", // Example: Replace with customer contact
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      // Open Razorpay checkout dialog
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.on("payment.failed", function (response) {
+        alert("Payment Failed: " + response.error.description);
+      });
+      paymentObject.open();
+    } catch (error) {
+      console.error("Error processing payment:", error);
     }
   };
 
@@ -314,8 +373,9 @@ export default function Example() {
                 <button
                   type="submit"
                   className="flex max-w-xs flex-1 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:w-full"
+                  onClick={() => processPayment(products)}
                 >
-                  Add to cart
+                  Purchase Now
                 </button>
 
                 <button
