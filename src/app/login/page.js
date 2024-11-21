@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_URL } from "../../utils/constant";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function LoginForm() {
     setError("");
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch(`${API_URL}/iam/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -34,7 +35,9 @@ export default function LoginForm() {
 
       if (res.ok) {
         setMessage("Login successful!");
-        router.push("/"); // Redirect to home page or dashboard
+
+        // Redirect to the home page
+        router.push("/");
       } else {
         setError(data.message || "Invalid username or password");
       }
@@ -73,7 +76,7 @@ export default function LoginForm() {
         </button>
       </form>
       <p className="text-center mt-4">
-        Dont have an account?{" "}
+        Don’t have an account?{" "}
         <a href="/signup" className="text-blue-500 hover:underline">
           Signup here
         </a>

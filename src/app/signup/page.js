@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { API_URL } from "../../utils/constant";
+import Cookies from "js-cookie"; // For cookie management
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +25,7 @@ const SignupPage = () => {
     setSuccessMessage(""); // Clear previous success message
 
     try {
-      const response = await fetch(`${API_URL}/signup/`, {
+      const response = await fetch(`${API_URL}/iam/signup/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,8 +43,23 @@ const SignupPage = () => {
       const data = await response.json();
       console.log("Signup Success:", data);
 
-      // Display success message or navigate the user
-      setSuccessMessage("Signup successful! Please log in.");
+      // Store tokens in cookies
+      Cookies.set("accessToken", data.accessToken, {
+        httpOnly: false, // `true` for backend use; `false` for client-side JS access
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "Strict",
+        expires: 1, // Token expiration in days (adjust as necessary)
+      });
+
+      Cookies.set("refreshToken", data.refreshToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+        expires: 7, // Longer expiry for refresh token
+      });
+
+      // Display success message
+      setSuccessMessage("Signup successful! You are now logged in.");
     } catch (error) {
       setError(error.message);
     }

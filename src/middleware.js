@@ -1,30 +1,47 @@
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { jwtDecode } from "jwt-decode"; // Ensure correct import
 
-export async function middleware(request) {
-  const token = request.cookies.get("accessToken")?.value;
+export default function middleware(req) {
+  const url = req.nextUrl.clone();
+  const accessToken = req.cookies.get("accessToken")?.value;
 
-  if (!token) {
-    // console.log("No token found, redirecting to /login");
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+  console.log("Access token from cookies:", accessToken); // Debugging log
+
+  // Helper function to check if a token is expired
+  const isTokenExpired = (token) => {
+    if (!token) return true;
+    try {
+      const decodedToken = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+      return decodedToken.exp < currentTime;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return true;
+    }
+  };
+  // If accessing a protected route
+  const isAuthRoute = !["/login", "/signup"].includes(url.pathname);
+
+  // Handle missing or expired accessToken
+  //   || isTokenExpired(accessToken)
+  if (!accessToken) {
+    console.log("accessToken is wrong or expired");
+    if (isAuthRoute) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
   }
 
-  try {
-    // Verify the token with `jose`
-    await jwtVerify(
-      token,
-      new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET)
-    );
-    console.log("Token is valid, allowing access to the route");
-    return NextResponse.next();
-  } catch (error) {
-    console.error("JWT verification failed:", error.message);
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+  // Redirect logged-in users away from login/signup pages
+  //&& !isTokenExpired(accessToken)
+  if (accessToken && !isAuthRoute) {
+    url.pathname = "/";
+    return NextResponse.redirect(url);
   }
+
+  return NextResponse.next(); // Allow the request to proceed
 }
 
 export const config = {
-  matcher: ["/((?!login|signup|api).*)"], // Exclude `/login`, `/signup`, and `/api`
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
