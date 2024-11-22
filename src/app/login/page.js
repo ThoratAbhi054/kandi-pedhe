@@ -33,7 +33,12 @@ export default function LoginForm() {
 
       const data = await res.json();
 
+      console.log("Access Token ===>", data.accessToken);
+
       if (res.ok) {
+        document.cookie = `accessToken=${data.accessToken}; path=/; secure; SameSite=Strict;`;
+        console.log("Cookie set: ", document.cookie);
+
         setMessage("Login successful!");
 
         // Redirect to the home page
