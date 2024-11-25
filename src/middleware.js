@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode"; // Ensure correct import
+import jwtDecode from "jwt-decode"; // Ensure correct import
 
 export default function middleware(req) {
   const url = req.nextUrl.clone();
@@ -19,13 +19,13 @@ export default function middleware(req) {
       return true;
     }
   };
-  // If accessing a protected route
+
+  // Check if the route requires authentication
   const isAuthRoute = !["/login", "/signup"].includes(url.pathname);
 
   // Handle missing or expired accessToken
-  //   || isTokenExpired(accessToken)
   if (!accessToken) {
-    console.log("accessToken is wrong or expired");
+    console.log("Access token is missing or expired");
     if (isAuthRoute) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
@@ -33,7 +33,6 @@ export default function middleware(req) {
   }
 
   // Redirect logged-in users away from login/signup pages
-  //&& !isTokenExpired(accessToken)
   if (accessToken && !isAuthRoute) {
     url.pathname = "/";
     return NextResponse.redirect(url);
@@ -43,5 +42,7 @@ export default function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|images/.*).*)", // Exclude public paths and static assets
+  ],
 };

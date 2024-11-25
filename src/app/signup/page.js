@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { API_URL } from "../../utils/constant";
-import Cookies from "js-cookie"; // For cookie management
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -20,9 +21,10 @@ const SignupPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSignup = async () => {
-    setError(null); // Clear previous error
-    setSuccessMessage(""); // Clear previous success message
+  const handleSignup = async (event) => {
+    event.preventDefault(); // Prevent form submission
+    setError(null);
+    setSuccessMessage("");
 
     try {
       const response = await fetch(`${API_URL}/iam/signup/`, {
@@ -43,110 +45,138 @@ const SignupPage = () => {
       const data = await response.json();
       console.log("Signup Success:", data);
 
-      // Store tokens in cookies
       Cookies.set("accessToken", data.accessToken, {
-        httpOnly: false, // `true` for backend use; `false` for client-side JS access
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
-        expires: 1, // Token expiration in days (adjust as necessary)
+        expires: 1,
       });
 
       Cookies.set("refreshToken", data.refreshToken, {
-        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
-        expires: 7, // Longer expiry for refresh token
+        expires: 7,
       });
 
-      // Display success message
-      setSuccessMessage("Signup successful! You are now logged in.");
+      setSuccessMessage("Signup successful! Redirecting...");
+      router.push("/"); // Redirect to the root page
     } catch (error) {
       setError(error.message);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-8 bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl font-semibold text-center mb-6">Signup</h1>
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      {successMessage && (
-        <p className="text-green-500 text-center">{successMessage}</p>
-      )}
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Username
-          </label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            First Name
-          </label>
-          <input
-            type="text"
-            name="first_name"
-            value={formData.first_name}
-            onChange={handleChange}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Last Name
-          </label>
-          <input
-            type="text"
-            name="last_name"
-            value={formData.last_name}
-            onChange={handleChange}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <button
-          onClick={() => {
-            console.log("Signup button clicked");
-            handleSignup();
-          }}
-          className="w-full py-2 mt-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm flex flex-col items-center">
+        <img alt="" src="/images/IngaleLogo.png" className="h-24 w-36" />
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
           Signup
-        </button>
+        </h2>
+      </div>
+
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        <form onSubmit={handleSignup} className="space-y-6">
+          <div>
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-900"
+            >
+              Username
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-900"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-900"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="first_name"
+              className="block text-sm font-medium text-gray-900"
+            >
+              First Name
+            </label>
+            <input
+              id="first_name"
+              name="first_name"
+              type="text"
+              value={formData.first_name}
+              onChange={handleChange}
+              required
+              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="last_name"
+              className="block text-sm font-medium text-gray-900"
+            >
+              Last Name
+            </label>
+            <input
+              id="last_name"
+              name="last_name"
+              type="text"
+              value={formData.last_name}
+              onChange={handleChange}
+              required
+              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            Sign up
+          </button>
+        </form>
+
+        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+        {successMessage && (
+          <p className="mt-4 text-sm text-green-600">{successMessage}</p>
+        )}
       </div>
     </div>
   );
