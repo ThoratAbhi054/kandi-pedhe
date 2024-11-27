@@ -166,6 +166,10 @@ export default function Example(params) {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const searchParams = useSearchParams();
   const [products, setProducts] = useState({});
+  const accessToken = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("accessToken="))
+    ?.split("=")[1];
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -237,6 +241,42 @@ export default function Example(params) {
       paymentObject.open();
     } catch (error) {
       console.error("Error processing payment:", error);
+    }
+  };
+
+  const addToCart = async (product) => {
+    try {
+      // Get the access token from cookies
+
+      // Define the payload
+      const payload = {
+        content_type: "product",
+        object_id: product.id,
+        // amount: product.price,
+        // discounted_amount: product.discounted_price,
+      };
+
+      // Make the POST request
+      const response = await fetch(`${API_URL}/cms/carts/add/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // Include the access token
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // Handle the response
+      if (!response.ok) {
+        throw new Error(`Failed to add to cart: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Item added to cart:", data);
+      alert("Product added to cart successfully!");
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      alert("Failed to add product to cart. Please try again.");
     }
   };
 
@@ -369,13 +409,21 @@ export default function Example(params) {
                 </fieldset>
               </div> */}
 
-              <div className="mt-10 flex">
+              <div className="mt-10 flex space-x-1">
                 <button
                   type="submit"
                   className="flex max-w-xs flex-1 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:w-full"
                   onClick={() => processPayment(products)}
                 >
                   Purchase Now
+                </button>
+
+                <button
+                  type="submit"
+                  className="flex max-w-xs flex-1 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:w-full"
+                  onClick={() => addToCart(products)}
+                >
+                  Add to Cart
                 </button>
 
                 <button

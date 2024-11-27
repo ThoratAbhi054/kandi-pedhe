@@ -40,6 +40,7 @@ import {
   StarIcon,
 } from "@heroicons/react/20/solid";
 import { API_URL } from "../../../utils/constant";
+import Link from "next/link.js";
 
 const filters = {
   price: [
@@ -422,49 +423,45 @@ export default function Example(params) {
 
           <div className="-mx-px grid grid-cols-2 border-l border-gray-200 sm:mx-0 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
-              <div
-                key={product.id}
-                className="group relative border-b border-r border-gray-200 p-4 sm:p-6"
-              >
-                <div className="aspect-h-1 aspect-w-1 overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-75">
-                  <img
-                    alt={product.title}
-                    src={product.thumbnail}
-                    className="h-full w-full object-cover object-center"
-                  />
-                </div>
-                <div className="pb-4 pt-10 text-center">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    <a href={product.href}>
-                      <span aria-hidden="true" className="absolute inset-0" />
+              <Link href={`/products/${product.id}`} key={product.id}>
+                <div className="group relative border-b border-r border-gray-200 p-4 sm:p-6 cursor-pointer">
+                  <div className="aspect-h-1 aspect-w-1 overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-75">
+                    <img
+                      alt={product.title}
+                      src={product.thumbnail}
+                      className="h-full w-full object-cover object-center"
+                    />
+                  </div>
+                  <div className="pb-4 pt-10 text-center">
+                    <h3 className="text-sm font-medium text-gray-900">
                       {product.title}
-                    </a>
-                  </h3>
-                  <div className="mt-3 flex flex-col items-center">
-                    <p className="sr-only">{product.rating} out of 5 stars</p>
-                    <div className="flex items-center">
-                      {[0, 1, 2, 3, 4].map((rating) => (
-                        <StarIcon
-                          key={rating}
-                          aria-hidden="true"
-                          className={classNames(
-                            product.rating > rating
-                              ? "text-yellow-400"
-                              : "text-gray-200",
-                            "h-5 w-5 flex-shrink-0"
-                          )}
-                        />
-                      ))}
+                    </h3>
+                    <div className="mt-3 flex flex-col items-center">
+                      <p className="sr-only">{product.rating} out of 5 stars</p>
+                      <div className="flex items-center">
+                        {[0, 1, 2, 3, 4].map((rating) => (
+                          <StarIcon
+                            key={rating}
+                            aria-hidden="true"
+                            className={classNames(
+                              product.rating > rating
+                                ? "text-yellow-400"
+                                : "text-gray-200",
+                              "h-5 w-5 flex-shrink-0"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {product.reviewCount} reviews
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {product.reviewCount} reviews
+                    <p className="mt-4 text-base font-medium text-gray-900">
+                      {product.price}
                     </p>
                   </div>
-                  <p className="mt-4 text-base font-medium text-gray-900">
-                    {product.price}
-                  </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
