@@ -16,6 +16,8 @@ const SignupPage = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
+  const router = useRouter(); // Initialize router
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -43,7 +45,6 @@ const SignupPage = () => {
       }
 
       const data = await response.json();
-      console.log("Signup Success:", data);
 
       Cookies.set("accessToken", data.accessToken, {
         secure: process.env.NODE_ENV === "production",

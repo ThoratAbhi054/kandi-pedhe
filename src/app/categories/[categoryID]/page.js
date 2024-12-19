@@ -119,7 +119,6 @@ export default function Example(params) {
   const [categories, setCategories] = useState({});
   const categoryID = params.params.categoryID;
 
-  console.log("products ====================>", products);
   const getCategories = async () => {
     try {
       const res = await fetch(`${API_URL}/cms/categories/${categoryID}/`, {
@@ -178,8 +177,6 @@ export default function Example(params) {
     getProducts(filtersforProduct);
     getCategories();
   }, []);
-
-  console.log("categories categories ==>", categories);
 
   return (
     <div className="bg-white">

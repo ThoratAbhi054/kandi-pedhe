@@ -70,7 +70,6 @@ const Layout = ({ children }) => {
   }, []);
   const pathName = usePathname();
 
-  console.log("Path Name ===>", pathName);
   return (
     <html lang="en" className="h-full bg-white">
       <head></head>

@@ -197,12 +197,12 @@ function Homepage() {
   const [products, setProducts] = useState([]);
   const { data: session } = useSession();
 
-  console.log("Data ====>", session);
   const getCategories = async () => {
     try {
       const res = await fetch(`${API_URL}/cms/categories/`, {
         redirect: "follow",
         headers: {
+          "ngrok-skip-browser-warning": "true",
           "Content-Type": "application/json",
         },
       });
@@ -249,6 +249,7 @@ function Homepage() {
       const res = await fetch(`${API_URL}/cms/products/`, {
         redirect: "follow",
         headers: {
+          "ngrok-skip-browser-warning": "true",
           "Content-Type": "application/json",
         },
       });
