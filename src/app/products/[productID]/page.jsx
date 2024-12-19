@@ -25,37 +25,8 @@ import { Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
+import { signOut } from "next-auth/react";
 
-const reviews = {
-  average: 4,
-  featured: [
-    {
-      id: 1,
-      rating: 5,
-      content: `
-          <p>This icon pack is just what I need for my latest project. There's an icon for just about anything I could ever need. Love the playful look!</p>
-        `,
-      date: "July 16, 2021",
-      datetime: "2021-07-16",
-      author: "Emily Selman",
-      avatarSrc:
-        "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80",
-    },
-    {
-      id: 2,
-      rating: 5,
-      content: `
-          <p>Blown away by how polished this icon pack is. Everything looks so consistent and each SVG is optimized out of the box so I can use it directly with confidence. It would take me several hours to create a single icon this good, so it's a steal at this price.</p>
-        `,
-      date: "July 12, 2021",
-      datetime: "2021-07-12",
-      author: "Hector Gibbons",
-      avatarSrc:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80",
-    },
-    // More reviews...
-  ],
-};
 const faqs = [
   {
     question: "What format are these icons?",
@@ -129,19 +100,7 @@ const product = {
   `,
   details: [
     {
-      name: "Description",
-      items: [
-        "Multiple strap configurations",
-        "Spacious interior with top zip",
-        "Leather handle and tabs",
-        "Interior dividers",
-        "Stainless strap loops",
-        "Double stitched construction",
-        "Water-resistant",
-      ],
-    },
-    {
-      name: "Specification",
+      name: "Product Information",
       items: [
         "Multiple strap configurations",
         "Spacious interior with top zip",
@@ -156,6 +115,19 @@ const product = {
   ],
 };
 
+function formatDateToHumanReadable(dateString) {
+  return new Date(dateString).toLocaleString("en-IN", {
+    weekday: "long", // Weekday, e.g. Monday
+    year: "numeric", // Year, e.g. 2024
+    month: "long", // Month, e.g. November
+    day: "numeric", // Day of the month, e.g. 27
+    hour: "numeric", // Hour, e.g. 23
+    minute: "numeric", // Minute, e.g. 59
+    second: "numeric", // Second, e.g. 12
+    hour12: true, // Use 12-hour clock
+  });
+}
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -166,6 +138,34 @@ export default function Example(params) {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const searchParams = useSearchParams();
   const [products, setProducts] = useState({});
+  const [reviews, setReviews] = useState([]);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+
+  const getReview = async () => {
+    try {
+      const res = await fetch(`${API_URL}/cms/ratings/`, {
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        params: {
+          object_id: id,
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          await signOut();
+        }
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setReviews(data);
+    } catch (err) {
+      console.log("Error fetching data:", err);
+    }
+  };
+
   const accessToken = document.cookie
     .split("; ")
     .find((row) => row.startsWith("accessToken="))
@@ -282,6 +282,7 @@ export default function Example(params) {
 
   useEffect(() => {
     getProduct();
+    getReview();
   }, []);
 
   return (
@@ -429,6 +430,7 @@ export default function Example(params) {
                 <button
                   type="button"
                   className="ml-4 flex items-center justify-center rounded-md px-3 py-3 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+                  onClick={() => setIsRatingModalOpen(true)}
                 >
                   <HeartIcon
                     aria-hidden="true"
@@ -495,18 +497,27 @@ export default function Example(params) {
                 <TabPanel className="-mb-10">
                   <h3 className="sr-only">Customer Reviews</h3>
 
-                  {reviews.featured.map((review, reviewIdx) => (
+                  {reviews.map((review, reviewIdx) => (
                     <div
                       key={review.id}
                       className="flex space-x-4 text-sm text-gray-500"
                     >
                       <div className="flex-none py-10">
-                        <img
-                          alt=""
-                          src={review.avatarSrc}
-                          className="h-10 w-10 rounded-full bg-gray-100"
-                        />
+                        {review.user.avatar ? (
+                          <img
+                            alt="User Avatar"
+                            src={review.user.avatar}
+                            className="h-10 w-10 rounded-full text-gray-700"
+                          />
+                        ) : (
+                          // If avatar is null, show initials of first and last name
+                          <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-white font-bold">
+                            {/* {review.user?.first_name[0]?.toUpperCase()}
+                            {review.user?.last_name[0]?.toUpperCase()} */}
+                          </div>
+                        )}
                       </div>
+
                       <div
                         className={classNames(
                           reviewIdx === 0 ? "" : "border-t border-gray-200",
@@ -514,10 +525,12 @@ export default function Example(params) {
                         )}
                       >
                         <h3 className="font-medium text-gray-900">
-                          {review.author}
+                          {review.user.first_name} {review.user.last_name}
                         </h3>
                         <p>
-                          <time dateTime={review.datetime}>{review.date}</time>
+                          <time dateTime={review.created_at}>
+                            {formatDateToHumanReadable(review.created_at)}
+                          </time>
                         </p>
 
                         <div className="mt-4 flex items-center">
@@ -539,7 +552,7 @@ export default function Example(params) {
                         </p>
 
                         <div
-                          dangerouslySetInnerHTML={{ __html: review.content }}
+                          dangerouslySetInnerHTML={{ __html: review.review }}
                           className="prose prose-sm mt-4 max-w-none text-gray-500"
                         />
                       </div>
@@ -551,7 +564,7 @@ export default function Example(params) {
                   <h3 className="sr-only">Frequently Asked Questions</h3>
 
                   <dl>
-                    {faqs.map((faq) => (
+                    {products.faqs?.map((faq) => (
                       <Fragment key={faq.question}>
                         <dt className="mt-10 font-medium text-gray-900">
                           {faq.question}
