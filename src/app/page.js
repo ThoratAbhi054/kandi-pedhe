@@ -202,7 +202,6 @@ function Homepage() {
       const res = await fetch(`${API_URL}/cms/categories/`, {
         redirect: "follow",
         headers: {
-          "ngrok-skip-browser-warning": "true",
           "Content-Type": "application/json",
         },
       });
@@ -249,7 +248,6 @@ function Homepage() {
       const res = await fetch(`${API_URL}/cms/products/`, {
         redirect: "follow",
         headers: {
-          "ngrok-skip-browser-warning": "true",
           "Content-Type": "application/json",
         },
       });
