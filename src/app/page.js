@@ -25,8 +25,7 @@ import {
 import { API_URL } from "../utils/constant.js";
 import { CategorySlider } from "../components/categories";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-
+import { AuthActions } from "../app/auth/utils.js";
 const navigation = {
   categories: [
     {
@@ -195,7 +194,21 @@ function Homepage() {
   const [categories, setCategories] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [products, setProducts] = useState([]);
-  const { data: session } = useSession();
+
+  const { logout, removeTokens } = AuthActions();
+
+  const handleLogout = () => {
+    logout()
+      .res(() => {
+        removeTokens();
+
+        router.push("/");
+      })
+      .catch(() => {
+        removeTokens();
+        router.push("/");
+      });
+  };
 
   const getCategories = async () => {
     try {
