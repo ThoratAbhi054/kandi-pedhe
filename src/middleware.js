@@ -7,9 +7,9 @@ export function middleware(request) {
   const accessToken = cookieStore.get("accessToken");
   console.log("token ====>", accessToken);
 
-  if (!accessToken && request.nextUrl.pathname !== "/") {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+  // if (!accessToken && request.nextUrl.pathname !== "/") {
+  //   return NextResponse.redirect(new URL("/", request.url));
+  // }
 }
 
 export const config = {
