@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 export function middleware(request) {
   const cookieStore = cookies();
   const accessToken = cookieStore.get("accessToken");
+  console.log("token ====>", accessToken);
 
   if (!accessToken && request.nextUrl.pathname !== "/") {
     return NextResponse.redirect(new URL("/", request.url));

@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { signOut } from "next-auth/react";
+import { AuthActions } from "../../../app/auth/utils";
 
 const faqs = [
   {
@@ -133,6 +134,7 @@ function classNames(...classes) {
 }
 
 export default function Example(params) {
+  const { getToken, logout, removeTokens } = AuthActions();
   const router = useRouter();
   const id = params?.params?.productID;
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
@@ -140,6 +142,7 @@ export default function Example(params) {
   const [products, setProducts] = useState({});
   const [reviews, setReviews] = useState([]);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const accessToken = getToken("access");
 
   const getReview = async () => {
     try {
@@ -166,18 +169,11 @@ export default function Example(params) {
     }
   };
 
-  const accessToken = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("accessToken="))
-    ?.split("=")[1];
-
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
-    script.onload = () => {
-      console.log("Razorpay SDK loaded"); // Confirm the SDK is loaded
-    };
+    script.onload = () => console.log("Razorpay SDK loaded");
     document.body.appendChild(script);
 
     return () => {
@@ -216,7 +212,7 @@ export default function Example(params) {
   const processPayment = async (product) => {
     try {
       const options = {
-        key: "YOUR_RAZORPAY_KEY_ID", // Replace with your Razorpay key ID
+        key: RAZORPAY_KEY_ID, // Replace with your Razorpay key ID
         amount: product.discounted_price * 100, // Amount in paise (INR)
         currency: "INR",
         name: "Your Company Name",
@@ -256,7 +252,6 @@ export default function Example(params) {
         // discounted_amount: product.discounted_price,
       };
 
-      // Make the POST request
       const response = await fetch(`${API_URL}/cms/carts/add/`, {
         method: "POST",
         headers: {

@@ -11,7 +11,7 @@ const api = wretch(API_URL).accept("application/json");
  * @param {"access" | "refresh"} type - The type of the token (access or refresh).
  */
 const storeToken = (token, type) => {
-  Cookies.set(type + "Token", token);
+  Cookies.set(`${type}Token`, token); // Append "Token" to match retrieval
 };
 
 /**
@@ -19,8 +19,8 @@ const storeToken = (token, type) => {
  * @param {"access" | "refresh"} type - The type of the token to retrieve (access or refresh).
  * @returns {string | undefined} The token, if found.
  */
-const getToken = () => {
-  return Cookies.get(type + "Token");
+const getToken = (type) => {
+  return Cookies.get(`${type}Token`); // Ensure the name matches exactly
 };
 
 /**

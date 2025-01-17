@@ -26,6 +26,7 @@ import Link from "next/link.js";
 import { useRouter } from "next/navigation";
 import "./globals.css";
 import { usePathname } from "next/navigation";
+import { AuthActions } from "./auth/utils.js";
 const navigation = {
   pages: [{ name: "Stores", href: "#" }],
 };
@@ -40,7 +41,9 @@ const Layout = ({ children }) => {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const { getToken, logout, removeTokens } = AuthActions();
 
+  const token = getToken("access");
   const getCategories = async () => {
     try {
       const res = await fetch(`${API_URL}/cms/categories/`, {
@@ -140,20 +143,24 @@ const Layout = ({ children }) => {
 
                     <div className="space-y-6 border-t border-gray-200 px-4 py-6">
                       <div className="flow-root">
-                        <a
-                          href="/login"
-                          className="-m-2 block p-2 font-medium text-gray-900"
-                        >
-                          Sign in
-                        </a>
+                        {!token && (
+                          <a
+                            href="/login"
+                            className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                          >
+                            Sign in
+                          </a>
+                        )}
                       </div>
                       <div className="flow-root">
-                        <a
-                          href="/signup"
-                          className="-m-2 block p-2 font-medium text-gray-900"
-                        >
-                          Sign up
-                        </a>
+                        {!token && (
+                          <a
+                            href="/signup"
+                            className="-m-2 block p-2 font-medium text-gray-900"
+                          >
+                            Sign up
+                          </a>
+                        )}
                       </div>
                     </div>
 
@@ -233,22 +240,27 @@ const Layout = ({ children }) => {
 
                       <div className="ml-auto flex items-center">
                         <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
-                          <a
-                            href="/login"
-                            className="text-sm font-medium text-gray-700 hover:text-gray-800"
-                          >
-                            Sign in
-                          </a>
+                          {!token && (
+                            <a
+                              href="/login"
+                              className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                            >
+                              Sign in
+                            </a>
+                          )}
+
                           <span
                             aria-hidden="true"
                             className="h-6 w-px bg-gray-200"
                           />
-                          <a
-                            href="/signup"
-                            className="text-sm font-medium text-gray-700 hover:text-gray-800"
-                          >
-                            Sign up
-                          </a>
+                          {!token && (
+                            <a
+                              href="/signup"
+                              className="-m-2 block p-2 font-medium text-gray-900"
+                            >
+                              Sign up
+                            </a>
+                          )}
                         </div>
 
                         {/* <div className="hidden lg:ml-8 lg:flex">

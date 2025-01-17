@@ -17,13 +17,18 @@ const Login = () => {
   const { login, storeToken } = AuthActions();
 
   const onSubmit = async (data) => {
+    console.log(data); // Log the form data
     try {
-      const json = await login(data.username, data.password);
-      storeToken(json.access, "access");
-      storeToken(json.refresh, "refresh");
-      router.push("/dashboard");
+      const response = await login(data.username, data.password);
+      const json = await response.json(); // Convert response to JSON
+      console.log(json); // Log the JSON response
+      storeToken(json.accessToken, "access");
+      storeToken(json.refreshToken, "refresh");
+
+      router.push("/");
     } catch (err) {
-      setError("root", { type: "manual", message: err.json.detail });
+      console.error(err); // This will help identify what went wrong
+      setError("root", { type: "manual", message: "Failed to login" });
     }
   };
 
@@ -82,7 +87,6 @@ const Login = () => {
                 />
               </div>
             </div>
-
             <div>
               <button
                 type="submit"
