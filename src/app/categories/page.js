@@ -41,7 +41,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { API_URL } from "../../utils/constant";
 import { useRouter } from "next/navigation";
-import Footer from "@/components/footer";
+
 const navigation = {
   categories: [
     {

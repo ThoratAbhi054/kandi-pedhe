@@ -40,7 +40,6 @@ import {
   StarIcon,
 } from "@heroicons/react/20/solid";
 import { API_URL } from "../../utils/constant";
-import Footer from "@/components/footer";
 
 const navigation = {
   categories: [
