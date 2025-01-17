@@ -23,13 +23,17 @@
     "razorpay": "^2.9.4",
     "react": "^18",
     "react-dom": "^18",
+    "react-hook-form": "^7.54.2",
     "react-slick": "^0.30.2",
     "slick-carousel": "^1.8.1",
-    "swiper": "^11.1.11"
+    "swiper": "^11.1.11",
+    "swr": "^2.3.0",
+    "wretch": "^2.11.0"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.8",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^22.5.1",
     "@types/react": "18.3.3",
     "eslint": "^8",
