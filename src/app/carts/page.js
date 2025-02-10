@@ -69,13 +69,27 @@ export default function Example() {
 
   console.log("cart  ===========>", cart);
 
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("Razorpay SDK loaded"); // Confirm the SDK is loaded
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script); // Clean up the script when component unmounts
+    };
+  }, []);
+
   const getCart = async () => {
     try {
-      const res = await fetch(`${API_URL}cms/carts/`, {
+      const res = await fetch(`${API_URL}/cms/carts/`, {
         redirect: "follow",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -95,23 +109,95 @@ export default function Example() {
 
   const checkout = async (cart_id) => {
     try {
-      const response = await fetch(`${API_URL}cms/carts/${cart_id}/checkout/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      console.log("response ======>", response);
+      const response = await fetch(
+        `${API_URL}/cms/carts/${cart_id}/checkout/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       if (!response.ok) {
         throw new Error(`Failed to checkout cart: ${cart_id}`);
       }
-      const data = await response.json();
-      console.log("data ===>", data);
-      alert("Cart check-out successfully!");
+
+      let data = await response.json();
+
+      // Ensure cart_id is included in data
+      data.cart_id = cart_id;
+
+      if (data.amount > 0) {
+        console.log("Payment Amount:", data.amount);
+        processPayment(data);
+      } else {
+        getCart();
+      }
+
+      alert("Checkout successful!");
     } catch (error) {
       console.error("Failed to check-out cart!", error);
-      alert("Failed to check-out cart. Please try again later");
+      alert("Failed to check-out cart. Please try again later.");
+    }
+  };
+
+  const processPayment = async (paymentResponse) => {
+    try {
+      const orderId = paymentResponse.order_id;
+      const cartId = paymentResponse.cart_id; // Ensure cart_id is passed
+
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: paymentResponse.amount * 100, // Ensure the amount is in paise
+        currency: "INR",
+        name: "Ingale Pedha House",
+        description: "Purchase Items",
+        order_id: orderId,
+        handler: async function (response) {
+          const data = {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            cart_id: cartId,
+          };
+
+          const result = await fetch(
+            `${API_URL}/cms/carts/${cartId}/validate_payment/`,
+            {
+              method: "POST",
+              body: JSON.stringify(data),
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (result.status === 204) {
+            alert("Payment successful! Your order has been placed.");
+          } else {
+            const res = await result.json();
+            alert(res.message);
+          }
+        },
+        prefill: {
+          name: "User Name", // Replace with dynamic user name
+          email: "chavanmangesh245@gmail.com",
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.on("payment.failed", function (response) {
+        alert(response.error.description);
+      });
+      paymentObject.open();
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -312,7 +398,7 @@ export default function Example() {
 
             <div className="mt-6">
               <button
-                type="submit"
+                type="button"
                 onClick={() => checkout(cart[0].id)} // Accessing the ID of the first cart object
                 className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
               >

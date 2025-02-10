@@ -35,6 +35,7 @@ const navigation = {
       name: "Mithai",
       featured: [
         {
+          id: "1",
           name: "New Arrivals",
           href: "#",
           imageSrc:
@@ -43,6 +44,7 @@ const navigation = {
             "Models sitting back to back, wearing Basic Tee in black and bone.",
         },
         {
+          id: "2",
           name: "Basic Tees",
           href: "#",
           imageSrc:

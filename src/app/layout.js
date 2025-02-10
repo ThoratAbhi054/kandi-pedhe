@@ -28,7 +28,7 @@ import "./globals.css";
 import { usePathname } from "next/navigation";
 import { AuthActions } from "./auth/utils.js";
 const navigation = {
-  pages: [{ name: "Stores", href: "#" }],
+  pages: [{ id: "1", name: "Stores", href: "#" }],
 };
 
 function classNames(...classes) {

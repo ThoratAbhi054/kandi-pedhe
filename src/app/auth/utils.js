@@ -32,11 +32,11 @@ const removeTokens = () => {
 };
 
 const register = (email, username, password) => {
-  return api.post({ email, username, password }, "auth/users/");
+  return api.post({ email, username, password }, "/auth/users/");
 };
 
 const login = (username, password) => {
-  return api.post({ username, password }, "iam/login/");
+  return api.post({ username, password }, "/iam/login/");
 };
 
 const logout = () => {
