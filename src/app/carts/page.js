@@ -109,6 +109,29 @@ export default function Example() {
 
   const checkout = async (cart_id) => {
     try {
+      const res = await fetch(`${API_URL}/iam/me/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to check profile");
+
+      const profile = await res.json();
+
+      // ✅ If profile is incomplete, redirect to complete-profile page
+      if (
+        !profile.firstName ||
+        !profile.lastName ||
+        !profile.phone ||
+        !profile.address
+      ) {
+        alert("Please complete your profile before checkout.");
+        router.push("/complete-profile");
+        return;
+      }
+
       const response = await fetch(
         `${API_URL}/cms/carts/${cart_id}/checkout/`,
         {

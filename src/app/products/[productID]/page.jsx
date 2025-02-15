@@ -27,6 +27,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { signOut } from "next-auth/react";
 import { AuthActions } from "../../../app/auth/utils";
+import { useCart } from "../../../context/CartContext"; // ✅ Import Cart Context
 
 const faqs = [
   {
@@ -143,6 +144,7 @@ export default function Example(params) {
   const [reviews, setReviews] = useState([]);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const accessToken = getToken("access");
+  const { addToCart } = useCart(); // ✅ Use `addToCart`
 
   const getReview = async () => {
     try {
@@ -208,72 +210,6 @@ export default function Example(params) {
     key_id: RAZORPAY_KEY_ID,
     key_secret: RAZORPAY_KEY_SECRET,
   });
-
-  const processPayment = async (product) => {
-    try {
-      const options = {
-        key: RAZORPAY_KEY_ID, // Replace with your Razorpay key ID
-        amount: product.discounted_price * 100, // Amount in paise (INR)
-        currency: "INR",
-        name: "Your Company Name",
-        description: `Payment for ${product.title}`,
-        image: "https://example.com/your_logo.png", // Optional: Add your logo URL
-
-        prefill: {
-          name: "Customer Name", // Example: Replace with customer name
-          email: "customer@example.com", // Example: Replace with customer email
-          contact: "9999999999", // Example: Replace with customer contact
-        },
-        theme: {
-          color: "#3399cc",
-        },
-      };
-
-      // Open Razorpay checkout dialog
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.on("payment.failed", function (response) {
-        alert("Payment Failed: " + response.error.description);
-      });
-      paymentObject.open();
-    } catch (error) {
-      console.error("Error processing payment:", error);
-    }
-  };
-
-  const addToCart = async (product) => {
-    try {
-      // Get the access token from cookies
-
-      // Define the payload
-      const payload = {
-        content_type: "product",
-        object_id: product.id,
-        // amount: product.price,
-        // discounted_amount: product.discounted_price,
-      };
-
-      const response = await fetch(`${API_URL}/cms/carts/add/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`, // Include the access token
-        },
-        body: JSON.stringify(payload),
-      });
-
-      // Handle the response
-      if (!response.ok) {
-        throw new Error(`Failed to add to cart: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("Item added to cart:", data);
-      alert("Product added to cart successfully!");
-    } catch (error) {
-      console.error("Error adding product to cart:", error);
-      alert("Failed to add product to cart. Please try again.");
-    }
-  };
 
   useEffect(() => {
     getProduct();
