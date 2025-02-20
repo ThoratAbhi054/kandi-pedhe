@@ -36,7 +36,7 @@ const register = (email, username, password) => {
 };
 
 const login = (username, password) => {
-  return api.post({ username, password }, "/iam/login/");
+  return api.post({ username, password }, "/iam/auth/login/");
 };
 
 const logout = () => {
@@ -46,7 +46,7 @@ const logout = () => {
 
 const handleJWTRefresh = () => {
   const refreshToken = getToken("refresh");
-  return api.post({ refresh: refreshToken }, "/auth/jwt/refresh");
+  return api.post({ refresh: refreshToken }, "/auth/login/refresh");
 };
 
 const resetPassword = (email) => {

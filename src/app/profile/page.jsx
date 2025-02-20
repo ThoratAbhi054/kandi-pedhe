@@ -12,11 +12,12 @@ export default function CompleteProfilePage() {
 
   // ✅ Profile State
   const [profile, setProfile] = useState({
+    id: "",
     first_name: "",
     last_name: "",
     contact_no: "",
     city: "",
-    address: "",
+    // address: "",
     avatar: null,
   });
 
@@ -27,7 +28,7 @@ export default function CompleteProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`${API_URL}/iam/me/`, {
+        const res = await fetch(`${API_URL}/iam/users/me/`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
@@ -38,15 +39,16 @@ export default function CompleteProfilePage() {
         const data = await res.json();
 
         // ✅ Extract Profile Data
-        const userProfile = data.profile || {};
+        const userProfile = data || {};
         setProfile({
+          id: userProfile.id || "",
           first_name: userProfile.first_name || "",
           last_name: userProfile.last_name || "",
           contact_no: userProfile.contact_no || "",
           city: userProfile.city || "",
-          address: Array.isArray(userProfile.address)
-            ? userProfile.address.join(", ")
-            : "",
+          // address: Array.isArray(userProfile.address)
+          //   ? userProfile.address.join(", ")
+          //   : "",
           avatar: userProfile.avatar || null,
         });
 
@@ -65,22 +67,13 @@ export default function CompleteProfilePage() {
     setSaving(true);
 
     try {
-      const res = await fetch(`${API_URL}/iam/me/`, {
-        method: "PUT",
+      const res = await fetch(`${API_URL}/iam/users/${profile.id}/`, {
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          profile: {
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            contact_no: profile.contact_no,
-            city: profile.city,
-            address: profile.address.split(",").map((addr) => addr.trim()), // Convert back to array
-            avatar: profile.avatar,
-          },
-        }),
+        body: JSON.stringify(profile),
       });
 
       if (!res.ok) throw new Error("Profile update failed");
@@ -180,7 +173,7 @@ export default function CompleteProfilePage() {
         </div>
 
         {/* Address */}
-        <div>
+        {/* <div>
           <label className="block text-gray-700 font-medium">Address</label>
           <textarea
             placeholder="Enter Address (comma-separated)"
@@ -191,7 +184,7 @@ export default function CompleteProfilePage() {
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             required
           />
-        </div>
+        </div> */}
 
         {/* Submit Button */}
         <button

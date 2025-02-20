@@ -18,6 +18,7 @@ import {
 } from "../../utils/constant";
 import Razorpay from "razorpay";
 import { NextResponse } from "next/server";
+import { useRouter } from "next/navigation"; // ✅ Import useRouter
 
 const api = wretch(API_URL).accept("application/json");
 
@@ -66,8 +67,7 @@ export default function Example() {
 
   const [cart, setCart] = useState([]);
   const [orderTotal, setOrderTotal] = useState(0);
-
-  console.log("cart  ===========>", cart);
+  const router = useRouter(); // ✅ Initialize useRouter
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -109,7 +109,7 @@ export default function Example() {
 
   const checkout = async (cart_id) => {
     try {
-      const res = await fetch(`${API_URL}/iam/me/`, {
+      const res = await fetch(`${API_URL}/iam/users/me/`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
@@ -121,16 +121,11 @@ export default function Example() {
       const profile = await res.json();
 
       // ✅ If profile is incomplete, redirect to complete-profile page
-      if (
-        !profile.firstName ||
-        !profile.lastName ||
-        !profile.phone ||
-        !profile.address
-      ) {
-        alert("Please complete your profile before checkout.");
-        router.push("/complete-profile");
-        return;
-      }
+      // if (!profile.first_name || !profile.last_name || !profile.contact_no) {
+      //   alert("Please complete your profile before checkout.");
+      //   router.push("/profile");
+      //   return;
+      // }
 
       const response = await fetch(
         `${API_URL}/cms/carts/${cart_id}/checkout/`,
