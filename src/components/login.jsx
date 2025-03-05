@@ -21,7 +21,7 @@ const Login = () => {
     try {
       const response = await login(data.username, data.password);
       const json = await response.json(); // Convert response to JSON
-      console.log(json); // Log the JSON response
+      console.log("Login logs ===>", json); // Log the JSON response
       storeToken(json.accessToken, "access");
       storeToken(json.refreshToken, "refresh");
 

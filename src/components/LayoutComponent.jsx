@@ -77,9 +77,9 @@ const LayoutComponent = ({ children }) => {
 
   return (
     <html lang="en" className="h-full bg-white">
-      <head></head>
+      <head className="h-full"></head>
       <body>
-        <div>
+        <div className="flex flex-col min-h-screen">
           {pathName === "/login" || pathName === "/signup" ? (
             <></>
           ) : (
@@ -117,7 +117,7 @@ const LayoutComponent = ({ children }) => {
                     <TabGroup className="mt-2">
                       <div className="border-b border-gray-200">
                         <TabList className="-mb-px flex space-x-8 px-4">
-                          {categories.map((category) => (
+                          {categories?.results?.map((category) => (
                             <Tab
                               key={category.title}
                               className="flex-1 whitespace-nowrap border-b-2 border-transparent px-1 py-4 text-base font-medium text-gray-900 data-[selected]:border-indigo-600 data-[selected]:text-indigo-600"
@@ -218,7 +218,7 @@ const LayoutComponent = ({ children }) => {
 
                       {/* Flyout menus */}
                       <div className="flex h-full space-x-8">
-                        {categories.map((category) => (
+                        {categories?.results?.map((category) => (
                           <Popover key={category.name} className="flex">
                             <div className="relative flex">
                               <div className="relative z-10 -mb-px flex items-center border-b-2 border-transparent pt-px text-sm font-medium text-gray-700 transition-colors duration-200 ease-out hover:text-gray-800 data-[open]:border-indigo-600 data-[open]:text-indigo-600">
@@ -323,7 +323,7 @@ const LayoutComponent = ({ children }) => {
             </>
           )}
 
-          <main>{children}</main>
+          <main className="flex-grow">{children}</main>
 
           <footer className="bg-gray-800 text-white py-6">
             <div className="container mx-auto px-4">

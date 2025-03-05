@@ -145,7 +145,7 @@ export default function Example(params) {
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const accessToken = getToken("access");
   const { addToCart } = useCart(); // ✅ Use `addToCart`
-
+  console.log("access token in rating ===>", accessToken);
   const getReview = async () => {
     try {
       const res = await fetch(`${API_URL}/cms/ratings/`, {
@@ -165,7 +165,7 @@ export default function Example(params) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setReviews(data);
+      setReviews(data?.results);
     } catch (err) {
       console.log("Error fetching data:", err);
     }

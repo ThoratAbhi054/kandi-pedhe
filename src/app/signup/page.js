@@ -29,7 +29,7 @@ const SignupPage = () => {
     setSuccessMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/iam/signup/`, {
+      const response = await fetch(`${API_URL}/iam/auth/signup/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

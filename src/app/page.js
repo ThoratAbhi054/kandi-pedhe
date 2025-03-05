@@ -203,7 +203,7 @@ function Homepage() {
       }
 
       const data = await res.json();
-      setCategories(data); // Store the fetched data in state
+      setCategories(data?.results); // Store the fetched data in state
     } catch (err) {
       console.error("Error fetching data:", err);
     }
@@ -226,7 +226,7 @@ function Homepage() {
       }
 
       const data = await res.json();
-      setFavorites(data); // Store the fetched data in state
+      setFavorites(data?.results); // Store the fetched data in state
     } catch (err) {
       console.error("Error fetching data:", err);
     }
@@ -249,7 +249,7 @@ function Homepage() {
       }
 
       const data = await res.json();
-      setProducts(data); // Store the fetched data in state
+      setProducts(data?.results); // Store the fetched data in state
     } catch (err) {
       console.error("Error fetching data:", err);
     }

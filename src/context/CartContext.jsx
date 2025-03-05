@@ -9,6 +9,7 @@ const CartContext = createContext(null);
 export const CartProvider = ({ children }) => {
   const { getToken } = AuthActions();
   const accessToken = getToken("access");
+  console.log("accessToken cart ==>", accessToken);
 
   const [cart, setCart] = useState([]);
   const [cartCount, setCartCount] = useState(0);

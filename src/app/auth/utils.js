@@ -32,7 +32,7 @@ const removeTokens = () => {
 };
 
 const register = (email, username, password) => {
-  return api.post({ email, username, password }, "/auth/users/");
+  return api.post({ email, username, password }, "/iam/auth/signup/");
 };
 
 const login = (username, password) => {
