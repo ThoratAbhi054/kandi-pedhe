@@ -507,27 +507,32 @@ function Homepage() {
             <div className="mt-10 overflow-x-auto whitespace-nowrap scroll-smooth">
               <div className="flex space-x-6">
                 {products.map((product) => (
-                  <div
+                  <a
                     key={product.id}
-                    className="group relative w-[250px] shrink-0"
+                    href={`/products/${product.id}`}
+                    className="group relative w-[250px] shrink-0 block"
                   >
-                    <div className="h-[300px] overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-75 flex">
+                    {/* Product Image */}
+                    <div className="h-[300px] overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-80 transition">
                       <img
                         alt={product.imageAlt}
                         src={product.thumbnail}
                         className="h-full w-full object-cover object-center"
                       />
                     </div>
-                    <h3 className="mt-4 text-base font-semibold text-gray-900">
-                      <a href={`/products/${product.id}`}>{product.title}</a>
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      ₹{" "}
-                      {new Intl.NumberFormat("en-IN").format(
-                        product.discounted_price
-                      )}
-                    </p>
-                  </div>
+                    {/* Product Title & Price */}
+                    <div className="mt-4 text-center">
+                      <h3 className="text-base font-semibold text-gray-900">
+                        {product.title}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        ₹{" "}
+                        {new Intl.NumberFormat("en-IN").format(
+                          product.discounted_price
+                        )}
+                      </p>
+                    </div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -549,28 +554,31 @@ function Homepage() {
               <div className="mt-10 overflow-x-auto whitespace-nowrap scroll-smooth">
                 <div className="flex space-x-6">
                   {categories.map((category) => (
-                    <a
+                    <div
                       key={category.id}
-                      href={category.href}
-                      className="group block w-[250px] shrink-0"
+                      className="group relative w-[250px] shrink-0"
                     >
-                      <div
+                      <a
+                        href={`/categories/${category.id}`}
+                        className="absolute inset-0 z-10"
                         aria-hidden="true"
-                        className="h-[300px] overflow-hidden rounded-lg group-hover:opacity-75 flex"
-                      >
+                      ></a>
+                      <div className="h-[300px] overflow-hidden rounded-lg bg-gray-100 group-hover:opacity-80 transition">
                         <img
                           alt={category.name}
                           src={category.thumbnail}
                           className="h-full w-full object-cover object-center"
                         />
                       </div>
-                      <h3 className="mt-4 text-base font-semibold text-gray-900">
-                        {category.name}
-                      </h3>
-                      <p className="mt-2 text-sm text-gray-500">
-                        {category.description}
-                      </p>
-                    </a>
+                      <div className="mt-4 text-center">
+                        <h3 className="text-base font-semibold text-gray-900">
+                          {category.name}
+                        </h3>
+                        <p className="mt-2 text-sm text-gray-500">
+                          {category.description}
+                        </p>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -596,25 +604,32 @@ function Homepage() {
                     key={favorite.id}
                     className="group relative w-[250px] shrink-0"
                   >
-                    <div className="h-[300px] overflow-hidden rounded-lg group-hover:opacity-75 flex">
+                    {/* ✅ Fully Clickable Card */}
+                    <a
+                      href={`/products/${favorite.id}`}
+                      className="absolute inset-0 z-10"
+                      aria-hidden="true"
+                    ></a>
+
+                    <div className="h-[300px] overflow-hidden rounded-lg bg-gray-100 group-hover:opacity-80 transition">
                       <img
                         src={favorite.thumbnail}
                         alt={favorite.imageAlt}
                         className="h-full w-full object-cover object-center"
                       />
                     </div>
-                    <h3 className="mt-4 text-base font-semibold text-gray-900">
-                      <a href={favorite.href}>
-                        <span className="absolute inset-0" />
+
+                    <div className="mt-4 text-center">
+                      <h3 className="text-base font-semibold text-gray-900">
                         {favorite.title}
-                      </a>
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      ₹{" "}
-                      {new Intl.NumberFormat("en-IN").format(
-                        favorite.discounted_price
-                      )}
-                    </p>
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        ₹{" "}
+                        {new Intl.NumberFormat("en-IN").format(
+                          favorite.discounted_price
+                        )}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>

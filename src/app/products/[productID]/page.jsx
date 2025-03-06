@@ -225,7 +225,7 @@ export default function Example(params) {
             {/* Image selector */}
             <div className="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
               <TabList className="grid grid-cols-4 gap-6">
-                {product.images.map((image) => (
+                {products.images?.map((image) => (
                   <Tab
                     key={image.id}
                     className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
@@ -233,8 +233,8 @@ export default function Example(params) {
                     <span className="sr-only">{products.title}</span>
                     <span className="absolute inset-0 overflow-hidden rounded-md">
                       <img
-                        alt=""
-                        src={products.thumbnail}
+                        alt={image.alt_text || "Product image"}
+                        src={`${API_URL}${image.image}`} // ✅ Ensure the correct URL format
                         className="h-full w-full object-cover object-center"
                       />
                     </span>
@@ -247,12 +247,13 @@ export default function Example(params) {
               </TabList>
             </div>
 
+            {/* Main Image Display */}
             <TabPanels className="aspect-h-1 aspect-w-1 w-full">
-              {product.images.map((image) => (
+              {products.images?.map((image) => (
                 <TabPanel key={image.id}>
                   <img
-                    alt={image.alt}
-                    src={products.thumbnail}
+                    alt={image.alt_text || "Product image"}
+                    src={`${API_URL}${image.image}`} // ✅ Ensure the correct URL format
                     className="h-full w-full object-cover object-center sm:rounded-lg"
                   />
                 </TabPanel>
