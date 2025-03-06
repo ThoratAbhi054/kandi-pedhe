@@ -29,19 +29,6 @@ import { signOut } from "next-auth/react";
 import { AuthActions } from "../../../app/auth/utils";
 import { useCart } from "../../../context/CartContext"; // ✅ Import Cart Context
 
-const faqs = [
-  {
-    question: "What format are these icons?",
-    answer:
-      "The icons are in SVG (Scalable Vector Graphic) format. They can be imported into your design tool of choice and used directly in code.",
-  },
-  {
-    question: "Can I use the icons at different sizes?",
-    answer:
-      "Yes. The icons are drawn on a 24 x 24 pixel grid, but the icons can be scaled to different sizes as needed. We don't recommend going smaller than 20 x 20 or larger than 64 x 64 to retain legibility and visual balance.",
-  },
-  // More FAQs...
-];
 const license = {
   href: "#",
   summary:
@@ -71,51 +58,6 @@ const license = {
       </ul>
     `,
 };
-const product = {
-  name: "Zip Tote Basket",
-  price: "$140",
-  rating: 4,
-  images: [
-    {
-      id: 1,
-      name: "Angled view",
-      src: "https://tailwindui.com/img/ecommerce-images/product-page-03-product-01.jpg",
-      alt: "Angled front view with bag zipped and handles upright.",
-    },
-    // More images...
-  ],
-  colors: [
-    {
-      name: "Washed Black",
-      bgColor: "bg-gray-700",
-      selectedColor: "ring-gray-700",
-    },
-    { name: "White", bgColor: "bg-white", selectedColor: "ring-gray-400" },
-    {
-      name: "Washed Gray",
-      bgColor: "bg-gray-500",
-      selectedColor: "ring-gray-500",
-    },
-  ],
-  description: `
-    <p>The Zip Tote Basket is the perfect midpoint between shopping tote and comfy backpack. With convertible straps, you can hand carry, should sling, or backpack this convenient and spacious bag. The zip top and durable canvas construction keeps your goods protected for all-day use.</p>
-  `,
-  details: [
-    {
-      name: "Product Information",
-      items: [
-        "Multiple strap configurations",
-        "Spacious interior with top zip",
-        "Leather handle and tabs",
-        "Interior dividers",
-        "Stainless strap loops",
-        "Double stitched construction",
-        "Water-resistant",
-      ],
-    },
-    // More sections...
-  ],
-};
 
 function formatDateToHumanReadable(dateString) {
   return new Date(dateString).toLocaleString("en-IN", {
@@ -138,16 +80,13 @@ export default function Example(params) {
   const { getToken, logout, removeTokens } = AuthActions();
   const router = useRouter();
   const id = params?.params?.productID;
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const searchParams = useSearchParams();
   const [products, setProducts] = useState({});
   const [reviews, setReviews] = useState([]);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const accessToken = getToken("access");
   const { addToCart } = useCart(); // ✅ Use `addToCart`
-  const [selectedImage, setSelectedImage] = useState(null); // Track selected image
-
-  console.log("access token in rating ===>", accessToken);
+  console.log("license  ===>", products);
   const getReview = async () => {
     try {
       const res = await fetch(`${API_URL}/cms/ratings/`, {
@@ -218,54 +157,25 @@ export default function Example(params) {
     getReview();
   }, []);
 
-  useEffect(() => {
-    if (products.thumbnail) {
-      setSelectedImage(products.thumbnail); // Default to thumbnail if exists
-    }
-  }, [products.thumbnail]);
-
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
           {/* Image gallery */}
           <TabGroup className="flex flex-col-reverse">
-            {/* Image Selector */}
+            {/* Image selector */}
             <div className="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
               <TabList className="grid grid-cols-4 gap-6">
-                {/* First tab - Always show the thumbnail as the first option */}
-                {products.thumbnail && (
-                  <Tab
-                    className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
-                    onClick={() => setSelectedImage(products.thumbnail)}
-                  >
-                    <span className="sr-only">{products.title}</span>
-                    <span className="absolute inset-0 overflow-hidden rounded-md">
-                      <img
-                        alt="Product Thumbnail"
-                        src={products.thumbnail}
-                        className="h-full w-full object-cover object-center"
-                      />
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-transparent ring-offset-2 group-data-[selected]:ring-indigo-500"
-                    />
-                  </Tab>
-                )}
-
-                {/* Product images */}
-                {products.images?.map((image) => (
+                {products?.images?.map((image) => (
                   <Tab
                     key={image.id}
                     className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
-                    onClick={() => setSelectedImage(image.image)}
                   >
                     <span className="sr-only">{products.title}</span>
                     <span className="absolute inset-0 overflow-hidden rounded-md">
                       <img
-                        alt={image.alt_text || "Product image"}
-                        src={image.image} // ✅ Correct format
+                        alt=""
+                        src={image.image}
                         className="h-full w-full object-cover object-center"
                       />
                     </span>
@@ -278,17 +188,19 @@ export default function Example(params) {
               </TabList>
             </div>
 
-            {/* Main Image Display */}
             <TabPanels className="aspect-h-1 aspect-w-1 w-full">
-              <TabPanel>
-                <img
-                  alt="Selected Product Image"
-                  src={selectedImage || products.thumbnail} // ✅ Show selected image or fallback to thumbnail
-                  className="h-full w-full object-cover object-center sm:rounded-lg"
-                />
-              </TabPanel>
+              {products?.images?.map((image) => (
+                <TabPanel key={image.id}>
+                  <img
+                    alt={image.alt}
+                    src={products.thumbnail}
+                    className="h-full w-full object-cover object-center sm:rounded-lg"
+                  />
+                </TabPanel>
+              ))}
             </TabPanels>
           </TabGroup>
+
           {/* Product info */}
           <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -315,7 +227,7 @@ export default function Example(params) {
                       key={rating}
                       aria-hidden="true"
                       className={classNames(
-                        product.rating > rating
+                        products.rating > rating
                           ? "text-indigo-500"
                           : "text-gray-300",
                         "h-5 w-5 flex-shrink-0"
@@ -323,7 +235,7 @@ export default function Example(params) {
                     />
                   ))}
                 </div>
-                <p className="sr-only">{product.rating} out of 5 stars</p>
+                <p className="sr-only">{products.rating} out of 5 stars</p>
               </div>
             </div>
 
@@ -407,7 +319,7 @@ export default function Example(params) {
               </h2>
 
               <div className="divide-y divide-gray-200 border-t">
-                {product.details.map((detail) => (
+                {products.details?.map((detail) => (
                   <Disclosure key={detail.name} as="div">
                     <h3>
                       <DisclosureButton className="group relative flex w-full items-center justify-between py-6 text-left">
@@ -540,10 +452,10 @@ export default function Example(params) {
                 <TabPanel className="pt-10">
                   <h3 className="sr-only">License</h3>
 
-                  <div
+                  {/* <div
                     dangerouslySetInnerHTML={{ __html: license.content }}
                     className="prose prose-sm max-w-none text-gray-500"
-                  />
+                  /> */}
                 </TabPanel>
               </TabPanels>
             </TabGroup>
