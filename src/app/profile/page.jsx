@@ -70,7 +70,7 @@ export default function CompleteProfilePage() {
       if (!res.ok) throw new Error("Profile update failed");
 
       for (const address of profile.address) {
-        await fetch(`${API_URL}/cms/addresses/`, {
+        await fetch(`${API_URL}/iam/addresses/`, {
           method: address.id ? "PATCH" : "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
