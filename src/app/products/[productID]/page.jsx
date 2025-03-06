@@ -249,15 +249,26 @@ export default function Example(params) {
 
             {/* Main Image Display */}
             <TabPanels className="aspect-h-1 aspect-w-1 w-full">
-              {products.images?.map((image) => (
-                <TabPanel key={image.id}>
+              {products.images?.length > 0 ? (
+                products.images.map((image) => (
+                  <TabPanel key={image.id}>
+                    <img
+                      alt={image.alt_text || "Product image"}
+                      src={`${API_URL}${image.image}`} // ✅ Ensure the correct URL format
+                      className="h-full w-full object-cover object-center sm:rounded-lg"
+                    />
+                  </TabPanel>
+                ))
+              ) : (
+                // Show thumbnail when no images are available
+                <TabPanel>
                   <img
-                    alt={image.alt_text || "Product image"}
-                    src={`${API_URL}${image.image}`} // ✅ Ensure the correct URL format
+                    alt="Default product image"
+                    src={products.thumbnail}
                     className="h-full w-full object-cover object-center sm:rounded-lg"
                   />
                 </TabPanel>
-              ))}
+              )}
             </TabPanels>
           </TabGroup>
 
