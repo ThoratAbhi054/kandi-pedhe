@@ -519,59 +519,50 @@ function Homepage() {
       <main>
         {/* Product section */}
 
-        <div className="bg-white">
-          <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-              Our products
+        <section aria-labelledby="products-heading">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+            <h2
+              id="products-heading"
+              className="text-2xl font-bold tracking-tight text-gray-900"
+            >
+              Our Products
             </h2>
 
-            <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-              {products.map((product) => (
-                <div key={product.id} className="group relative">
-                  <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
-                    <img
-                      alt={product.imageAlt}
-                      src={product.thumbnail}
-                      className="h-full w-full object-cover object-center lg:h-full lg:w-full"
-                    />
-                  </div>
-                  <div className="mt-4 flex justify-between">
-                    <div>
-                      <h3 className="text-sm text-gray-700">
-                        <Link
-                          href={{
-                            pathname: `/products/${product.id}`,
-                            // query: { product: product.id },
-                          }}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="absolute inset-0"
-                          />
-                          {product.title}
-                        </Link>
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {product.description}
-                      </p>
+            {/* Horizontal Scrollable Section */}
+            <div className="mt-10 overflow-x-auto whitespace-nowrap scroll-smooth">
+              <div className="flex space-x-6">
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="group relative w-[250px] shrink-0"
+                  >
+                    <div className="h-[300px] overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-75 flex">
+                      <img
+                        alt={product.imageAlt}
+                        src={product.thumbnail}
+                        className="h-full w-full object-cover object-center"
+                      />
                     </div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <h3 className="mt-4 text-base font-semibold text-gray-900">
+                      <a href={`/products/${product.id}`}>{product.title}</a>
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
                       ₹{" "}
                       {new Intl.NumberFormat("en-IN").format(
                         product.discounted_price
                       )}
                     </p>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Category section */}
         <section aria-labelledby="category-heading" className="bg-gray-50">
           <div className="bg-white">
-            <div className="mx-auto max-w-xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
               <h2 className="text-2xl font-bold tracking-tight text-gray-900">
                 Shop by Category
               </h2>
@@ -579,31 +570,34 @@ function Homepage() {
                 Explore Our Delicious Range of Culinary Delights
               </p>
 
-              <div className="mt-10 space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-8 lg:space-y-0">
-                {categories.map((category) => (
-                  <a
-                    key={category.name}
-                    href={category.href}
-                    className="group block"
-                  >
-                    <div
-                      aria-hidden="true"
-                      className="w-[300px] h-[400px] overflow-hidden rounded-lg group-hover:opacity-75 flex"
+              {/* Horizontal Scrollable Section */}
+              <div className="mt-10 overflow-x-auto whitespace-nowrap scroll-smooth">
+                <div className="flex space-x-6">
+                  {categories.map((category) => (
+                    <a
+                      key={category.id}
+                      href={category.href}
+                      className="group block w-[250px] shrink-0"
                     >
-                      <img
-                        alt={category.name}
-                        src={category.thumbnail}
-                        className="h-full w-full object-cover object-center"
-                      />
-                    </div>
-                    <h3 className="mt-4 text-base font-semibold text-gray-900">
-                      {category.name}
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      {category.description}
-                    </p>
-                  </a>
-                ))}
+                      <div
+                        aria-hidden="true"
+                        className="h-[300px] overflow-hidden rounded-lg group-hover:opacity-75 flex"
+                      >
+                        <img
+                          alt={category.name}
+                          src={category.thumbnail}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                      <h3 className="mt-4 text-base font-semibold text-gray-900">
+                        {category.name}
+                      </h3>
+                      <p className="mt-2 text-sm text-gray-500">
+                        {category.description}
+                      </p>
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -649,56 +643,43 @@ function Homepage() {
         {/* Favorites section */}
         <section aria-labelledby="favorites-heading">
           <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-            <div className="sm:flex sm:items-baseline sm:justify-between">
-              <h2
-                id="favorites-heading"
-                className="text-2xl font-bold tracking-tight text-gray-900"
-              >
-                Our Favorites
-              </h2>
-              <a
-                href="#"
-                className="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-500 sm:block"
-              >
-                Browse all favorites
-                <span aria-hidden="true"> &rarr;</span>
-              </a>
-            </div>
+            <h2
+              id="favorites-heading"
+              className="text-2xl font-bold tracking-tight text-gray-900"
+            >
+              Our Favorites
+            </h2>
 
-            <div className="mt-6 grid grid-cols-1 gap-y-10 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-0 lg:gap-x-8">
-              {favorites.map((favorite) => (
-                <div key={favorite.id} className="group relative">
-                  <div className="w-[300px] h-[400px] overflow-hidden rounded-lg group-hover:opacity-75 flex">
-                    <img
-                      src={favorite.thumbnail}
-                      alt={favorite.imageAlt}
-                      className="h-full w-full object-cover object-center"
-                    />
+            {/* Horizontal Scrollable Section */}
+            <div className="mt-10 overflow-x-auto whitespace-nowrap scroll-smooth">
+              <div className="flex space-x-6">
+                {favorites.map((favorite) => (
+                  <div
+                    key={favorite.id}
+                    className="group relative w-[250px] shrink-0"
+                  >
+                    <div className="h-[300px] overflow-hidden rounded-lg group-hover:opacity-75 flex">
+                      <img
+                        src={favorite.thumbnail}
+                        alt={favorite.imageAlt}
+                        className="h-full w-full object-cover object-center"
+                      />
+                    </div>
+                    <h3 className="mt-4 text-base font-semibold text-gray-900">
+                      <a href={favorite.href}>
+                        <span className="absolute inset-0" />
+                        {favorite.title}
+                      </a>
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      ₹{" "}
+                      {new Intl.NumberFormat("en-IN").format(
+                        favorite.discounted_price
+                      )}
+                    </p>
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-gray-900">
-                    <a href={favorite.href}>
-                      <span className="absolute inset-0" />
-                      {favorite.title}
-                    </a>
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    ₹{" "}
-                    {new Intl.NumberFormat("en-IN").format(
-                      favorite.discounted_price
-                    )}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 sm:hidden">
-              <a
-                href="#"
-                className="block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-              >
-                Browse all favorites
-                <span aria-hidden="true"> &rarr;</span>
-              </a>
+                ))}
+              </div>
             </div>
           </div>
         </section>
