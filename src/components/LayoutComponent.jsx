@@ -115,12 +115,12 @@ const LayoutComponent = ({ children }) => {
 
                     {/* Links */}
                     <TabGroup className="mt-2">
-                      <div className="border-b border-gray-200 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                        <TabList className="flex space-x-4 px-4">
+                      <div className="border-b border-gray-200">
+                        <TabList className="-mb-px flex space-x-8 px-4">
                           {categories?.results?.map((category) => (
                             <Tab
                               key={category.title}
-                              className="flex-shrink-0 px-3 py-4 text-base font-medium text-gray-900 border-b-2 border-transparent whitespace-nowrap data-[selected]:border-indigo-600 data-[selected]:text-indigo-600"
+                              className="flex-1 whitespace-nowrap border-b-2 border-transparent px-1 py-4 text-base font-medium text-gray-900 data-[selected]:border-indigo-600 data-[selected]:text-indigo-600"
                             >
                               <Link href={`/categories/${category.id}`}>
                                 {category.title}
@@ -217,7 +217,7 @@ const LayoutComponent = ({ children }) => {
                       </div>
 
                       {/* Flyout menus */}
-                      <div className="flex h-full space-x-8">
+                      {/* <div className="flex h-full space-x-8">
                         {categories?.results?.map((category) => (
                           <Popover key={category.name} className="flex">
                             <div className="relative flex">
@@ -239,7 +239,7 @@ const LayoutComponent = ({ children }) => {
                             {page.name}
                           </a>
                         ))}
-                      </div>
+                      </div> */}
 
                       <div className="ml-auto flex items-center">
                         <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
