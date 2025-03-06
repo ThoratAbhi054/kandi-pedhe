@@ -145,6 +145,8 @@ export default function Example(params) {
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const accessToken = getToken("access");
   const { addToCart } = useCart(); // ✅ Use `addToCart`
+  const [selectedImage, setSelectedImage] = useState(null); // Track selected image
+
   console.log("access token in rating ===>", accessToken);
   const getReview = async () => {
     try {
@@ -216,25 +218,54 @@ export default function Example(params) {
     getReview();
   }, []);
 
+  useEffect(() => {
+    if (products.thumbnail) {
+      setSelectedImage(products.thumbnail); // Default to thumbnail if exists
+    }
+  }, [products.thumbnail]);
+
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
           {/* Image gallery */}
           <TabGroup className="flex flex-col-reverse">
-            {/* Image selector */}
+            {/* Image Selector */}
             <div className="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
               <TabList className="grid grid-cols-4 gap-6">
+                {/* First tab - Always show the thumbnail as the first option */}
+                {products.thumbnail && (
+                  <Tab
+                    className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
+                    onClick={() => setSelectedImage(products.thumbnail)}
+                  >
+                    <span className="sr-only">{products.title}</span>
+                    <span className="absolute inset-0 overflow-hidden rounded-md">
+                      <img
+                        alt="Product Thumbnail"
+                        src={products.thumbnail}
+                        className="h-full w-full object-cover object-center"
+                      />
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-transparent ring-offset-2 group-data-[selected]:ring-indigo-500"
+                    />
+                  </Tab>
+                )}
+
+                {/* Product images */}
                 {products.images?.map((image) => (
                   <Tab
                     key={image.id}
                     className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
+                    onClick={() => setSelectedImage(image.image)}
                   >
                     <span className="sr-only">{products.title}</span>
                     <span className="absolute inset-0 overflow-hidden rounded-md">
                       <img
                         alt={image.alt_text || "Product image"}
-                        src={`${API_URL}${image.image}`} // ✅ Ensure the correct URL format
+                        src={image.image} // ✅ Correct format
                         className="h-full w-full object-cover object-center"
                       />
                     </span>
@@ -249,29 +280,15 @@ export default function Example(params) {
 
             {/* Main Image Display */}
             <TabPanels className="aspect-h-1 aspect-w-1 w-full">
-              {products.images?.length > 0 ? (
-                products.images.map((image) => (
-                  <TabPanel key={image.id}>
-                    <img
-                      alt={image.alt_text || "Product image"}
-                      src={`${API_URL}${image.image}`} // ✅ Ensure the correct URL format
-                      className="h-full w-full object-cover object-center sm:rounded-lg"
-                    />
-                  </TabPanel>
-                ))
-              ) : (
-                // Show thumbnail when no images are available
-                <TabPanel>
-                  <img
-                    alt="Default product image"
-                    src={products.thumbnail}
-                    className="h-full w-full object-cover object-center sm:rounded-lg"
-                  />
-                </TabPanel>
-              )}
+              <TabPanel>
+                <img
+                  alt="Selected Product Image"
+                  src={selectedImage || products.thumbnail} // ✅ Show selected image or fallback to thumbnail
+                  className="h-full w-full object-cover object-center sm:rounded-lg"
+                />
+              </TabPanel>
             </TabPanels>
           </TabGroup>
-
           {/* Product info */}
           <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
