@@ -27,6 +27,11 @@ import { CategorySlider } from "../components/categories";
 import Link from "next/link";
 import { AuthActions } from "../app/auth/utils.js";
 import Footer from "../components/footer.jsx";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules"; // ✅ Correct Import
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const navigation = {
   categories: [
@@ -169,6 +174,7 @@ function Homepage() {
   const [categories, setCategories] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [products, setProducts] = useState([]);
+  const [sliders, setSliders] = useState([]);
 
   const { getToken, logout, removeTokens } = AuthActions();
 
@@ -183,6 +189,17 @@ function Homepage() {
         removeTokens();
         router.push("/");
       });
+  };
+
+  const fetchSliders = async () => {
+    try {
+      const res = await fetch(`${API_URL}/cms/sliders/`);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const data = await res.json();
+      setSliders(data?.results || []);
+    } catch (err) {
+      console.error("Error fetching sliders:", err);
+    }
   };
 
   const token = getToken("access");
@@ -259,6 +276,7 @@ function Homepage() {
     getCategories();
     getFavouriteProducts();
     getProducts();
+    fetchSliders();
   }, []);
 
   return (
@@ -420,99 +438,56 @@ function Homepage() {
 
       <header className="relative overflow-hidden">
         {/* Hero section */}
-        <div className="pb-80 pt-16 sm:pb-40 sm:pt-24 lg:pb-48 lg:pt-40">
-          <div className="relative mx-auto max-w-7xl px-4 sm:static sm:px-6 lg:px-8">
-            <div className="sm:max-w-lg">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Ingale Brothers
-              </h1>
-              <h1 className="text-1xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-                Tradition and Taste for Over 50 Years
-              </h1>
-              <p className="mt-4 text-xl text-gray-500">
-                For more than half a century, the Ingale Brothers has been
-                committed to providing top-quality food and their famous Kandi
-                Pedhas. Experience the tradition and taste that have delighted
-                generations.
-              </p>
-            </div>
-            <div>
-              <div className="mt-10">
-                {/* Decorative image grid */}
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none lg:absolute lg:inset-y-0 lg:mx-auto lg:w-full lg:max-w-7xl"
-                >
-                  <div className="absolute transform sm:left-1/2 sm:top-0 sm:translate-x-8 lg:left-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:translate-x-8">
-                    <div className="flex items-center space-x-6 lg:space-x-8">
-                      <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
-                        <div className="h-64 w-44 overflow-hidden rounded-lg sm:opacity-0 lg:opacity-100">
-                          <img
-                            src="https://i.pinimg.com/564x/de/43/21/de43212bcbd6cce15b59ed1c4ce6885a.jpg"
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                        <div className="h-64 w-44 overflow-hidden rounded-lg">
-                          <img
-                            src="https://i.pinimg.com/564x/bb/f9/5d/bbf95d869cb8e365f5e9938a58477c93.jpg"
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
-                        <div className="h-64 w-44 overflow-hidden rounded-lg">
-                          <img
-                            src="https://i.pinimg.com/564x/a5/1e/fa/a51efaca2ce6cc16ec8df572ee80eae4.jpg"
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                        <div className="h-64 w-44 overflow-hidden rounded-lg">
-                          <img
-                            src="https://i.pinimg.com/564x/df/24/a6/df24a61d2cc1dd7a0c56180c3f2cfaab.jpg"
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                        <div className="h-64 w-44 overflow-hidden rounded-lg">
-                          <img
-                            src="https://i.pinimg.com/564x/4f/1d/04/4f1d04984019ec183d285e231d40ca61.jpg"
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
-                        <div className="h-64 w-44 overflow-hidden rounded-lg">
-                          <img
-                            src="https://i.pinimg.com/564x/6a/05/96/6a05966b330c8b166faa6c6aba02156d.jpg"
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                        <div className="h-64 w-44 overflow-hidden rounded-lg">
-                          <img
-                            src="https://i.pinimg.com/564x/ba/aa/9f/baaa9fe133cccefe6a501c65e0974cfe.jpg"
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                      </div>
+        <div className="relative w-full h-[550px]">
+          {sliders.length > 0 ? (
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={10}
+              slidesPerView={1}
+              navigation
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 3000 }}
+              loop={true}
+              className="w-full h-full"
+            >
+              {sliders.map((slide) => (
+                <SwiperSlide key={slide.id} className="relative">
+                  <div className="relative w-full h-[550px]">
+                    {/* Image */}
+                    <img
+                      src={slide.image}
+                      alt={`Slider ${slide.id}`}
+                      className="w-full h-full object-cover rounded-lg shadow-lg"
+                    />
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-50" />
+                    {/* Text Content */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6">
+                      <h1 className="text-4xl font-extrabold drop-shadow-lg">
+                        इंगळे उद्योग समूह – ५९ वर्षांची अमूल्य सेवा
+                      </h1>
+                      <p className="mt-3 text-lg sm:max-w-2xl drop-shadow-md">
+                        इंगळे कुटुंबियांच्या अथक प्रयत्नांनी आणि ग्राहकांच्या
+                        विश्वासाने सुरू झालेल्या या प्रवासाने आज ५९ वर्षे पूर्ण
+                        केली आहेत.
+                      </p>
+                      {/* Call to Action Button */}
+                      <a
+                        href="#"
+                        className="mt-6 inline-block rounded-md bg-indigo-600 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:bg-indigo-700 transition"
+                      >
+                        अधिक जाणून घ्या
+                      </a>
                     </div>
                   </div>
-                </div>
-
-                <a
-                  href="#"
-                  className="inline-block rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-center font-medium text-white hover:bg-indigo-700"
-                >
-                  Place Order
-                </a>
-              </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <div className="h-[550px] flex items-center justify-center bg-gray-200 rounded-lg">
+              <p className="text-lg text-gray-500">No images available</p>
             </div>
-          </div>
+          )}
         </div>
       </header>
 
@@ -599,43 +574,6 @@ function Homepage() {
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Featured section */}
-        <section aria-labelledby="cause-heading">
-          <div className="relative bg-gray-800 px-6 py-32 sm:px-12 sm:py-40 lg:px-16">
-            <div className="absolute inset-0 overflow-hidden">
-              <img
-                src="/images/IngalePedhaHouse.jpg"
-                alt=""
-                className="h-full w-full object-cover object-top"
-              />
-            </div>
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gray-900 bg-opacity-50"
-            />
-            <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
-              <h2
-                id="cause-heading"
-                className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
-              >
-                Long-term thinking
-              </h2>
-              <p className="mt-3 text-xl text-white">
-                Were committed to responsible, sustainable, and ethical
-                manufacturing. Our small-scale approach allows us to focus on
-                quality and reduce our impact. Were doing our best to delay the
-                inevitable heat-death of the universe.
-              </p>
-              <a
-                href="#"
-                className="mt-8 block w-full rounded-md border border-transparent bg-white px-8 py-3 text-base font-medium text-gray-900 hover:bg-gray-100 sm:w-auto"
-              >
-                Read our story
-              </a>
             </div>
           </div>
         </section>
