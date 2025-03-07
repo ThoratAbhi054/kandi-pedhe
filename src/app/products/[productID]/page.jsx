@@ -187,7 +187,7 @@ export default function Example(params) {
                     <span className="absolute inset-0 overflow-hidden rounded-md">
                       <img
                         alt="Product Thumbnail"
-                        src={products.thumbnail}
+                        src={selectedImage}
                         className="h-full w-full object-cover object-center"
                       />
                     </span>
