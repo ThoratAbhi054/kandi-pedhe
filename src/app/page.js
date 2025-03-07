@@ -350,9 +350,9 @@ function Homepage() {
                         <h3 className="text-base font-semibold text-gray-900">
                           {category.name}
                         </h3>
-                        <p className="mt-2 text-sm text-gray-500">
+                        {/* <p className="mt-2 text-sm text-gray-500">
                           {category.description}
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                   ))}
