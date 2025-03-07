@@ -173,6 +173,7 @@ export default function Example(params) {
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
           {/* Image gallery */}
+          {/* Image Gallery with Clickable Thumbnails */}
           <TabGroup className="flex flex-col-reverse">
             {/* Image Selector - Always visible on all screens */}
             <div className="mx-auto mt-6 w-full max-w-2xl lg:max-w-none">
@@ -180,14 +181,15 @@ export default function Example(params) {
                 {/* Always show the product thumbnail as the first image */}
                 {products.thumbnail && (
                   <Tab
+                    key="thumbnail"
+                    onClick={() => setSelectedImage(products.thumbnail)} // ✅ Updates Main Image
                     className="group relative flex h-20 w-20 sm:h-24 sm:w-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
-                    onClick={() => setSelectedImage(products.thumbnail)}
                   >
                     <span className="sr-only">{products.title}</span>
                     <span className="absolute inset-0 overflow-hidden rounded-md">
                       <img
                         alt="Product Thumbnail"
-                        src={selectedImage}
+                        src={products.thumbnail}
                         className="h-full w-full object-cover object-center"
                       />
                     </span>
@@ -203,14 +205,14 @@ export default function Example(params) {
                   products.images.map((image) => (
                     <Tab
                       key={image.id}
+                      onClick={() => setSelectedImage(image.image)} // ✅ Updates Main Image
                       className="group relative flex h-20 w-20 sm:h-24 sm:w-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
-                      onClick={() => setSelectedImage(image.image)}
                     >
                       <span className="sr-only">{products.title}</span>
                       <span className="absolute inset-0 overflow-hidden rounded-md">
                         <img
                           alt={image.alt_text || "Product image"}
-                          src={image.image} // ✅ Ensure correct format
+                          src={image.image}
                           className="h-full w-full object-cover object-center"
                         />
                       </span>
@@ -230,13 +232,13 @@ export default function Example(params) {
                   alt="Selected Product Image"
                   src={
                     selectedImage || products.thumbnail || "/fallback-image.jpg"
-                  } // ✅ Ensure fallback
+                  } // ✅ Correctly updates main image
                   className="h-full w-full object-cover object-center sm:rounded-lg"
                 />
               </TabPanel>
             </TabPanels>
           </TabGroup>
-          ;{/* Product info */}
+          {/* Product info */}
           <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               {products.title}
