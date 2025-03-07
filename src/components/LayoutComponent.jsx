@@ -340,7 +340,7 @@ const LayoutComponent = ({ children }) => {
                     target="_blank"
                   >
                     Abhishek Thorat
-                  </a>
+                  </a>{" "}
                   &{" "}
                   <a
                     href="https://www.linkedin.com/in/chavanmangesh245/"
