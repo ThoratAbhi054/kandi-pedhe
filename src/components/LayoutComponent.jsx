@@ -341,6 +341,14 @@ const LayoutComponent = ({ children }) => {
                   >
                     Abhishek Thorat
                   </a>
+                  &{" "}
+                  <a
+                    href="https://www.linkedin.com/in/chavanmangesh245/"
+                    className="text-indigo-400 hover:underline"
+                    target="_blank"
+                  >
+                    Mangesh Chavan
+                  </a>
                 </div>
               </div>
             </div>
