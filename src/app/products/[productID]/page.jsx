@@ -227,15 +227,17 @@ export default function Example(params) {
 
             {/* Main Image Display */}
             <TabPanels className="aspect-h-1 aspect-w-1 w-full">
-              <TabPanel>
+              <div className="h-full">
+                {" "}
+                {/* Add a container div */}
                 <img
                   alt="Selected Product Image"
                   src={
                     selectedImage || products.thumbnail || "/fallback-image.jpg"
-                  } // ✅ Correctly updates main image
+                  }
                   className="h-full w-full object-cover object-center sm:rounded-lg"
                 />
-              </TabPanel>
+              </div>
             </TabPanels>
           </TabGroup>
           {/* Product info */}
