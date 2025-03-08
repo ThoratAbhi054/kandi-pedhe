@@ -96,7 +96,7 @@ function Homepage() {
 
   const getFavouriteProducts = async () => {
     try {
-      const res = await fetch(`${API_URL}/cms/products/?is_favourite=TRUE`, {
+      const res = await fetch(`${API_URL}/cms/products/?is_favourite=true`, {
         redirect: "follow",
         headers: {
           "Content-Type": "application/json",
