@@ -113,10 +113,10 @@ const LayoutComponent = ({ children }) => {
                       </button>
                     </div>
 
-                    {/* Links */}
+                    {/* Navigation Links */}
                     <TabGroup className="mt-2">
                       <div className="border-b border-gray-200">
-                        <TabList className="-mb-px flex space-x-8 px-4">
+                        <TabList className="-mb-px flex space-x-8 px-4 overflow-x-auto">
                           {categories?.results?.map((category) => (
                             <Tab
                               key={category.title}
@@ -131,6 +131,7 @@ const LayoutComponent = ({ children }) => {
                       </div>
                     </TabGroup>
 
+                    {/* Pages */}
                     <div className="space-y-6 border-t border-gray-200 px-4 py-6">
                       {navigation.pages.map((page) => (
                         <div key={page.name} className="flow-root">
@@ -144,41 +145,41 @@ const LayoutComponent = ({ children }) => {
                       ))}
                     </div>
 
+                    {/* Sign In / Sign Out Section */}
                     <div className="space-y-6 border-t border-gray-200 px-4 py-6">
-                      <div className="flow-root">
-                        {!token && (
-                          <a
-                            href="/login"
-                            className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                      {!token ? (
+                        <>
+                          <div className="flow-root">
+                            <Link
+                              href="/login"
+                              className="block text-sm font-medium text-gray-900 hover:text-indigo-600"
+                            >
+                              Sign in
+                            </Link>
+                          </div>
+                          <div className="flow-root">
+                            <Link
+                              href="/signup"
+                              className="block text-sm font-medium text-gray-900 hover:text-indigo-600"
+                            >
+                              Sign up
+                            </Link>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flow-root">
+                          <button
+                            onClick={() => {
+                              logout();
+                              removeTokens();
+                              router.push("/");
+                            }}
+                            className="block w-full text-left text-sm font-medium text-red-600 hover:text-red-800"
                           >
-                            Sign in
-                          </a>
-                        )}
-                      </div>
-                      <div className="flow-root">
-                        {!token && (
-                          <a
-                            href="/signup"
-                            className="-m-2 block p-2 font-medium text-gray-900"
-                          >
-                            Sign up
-                          </a>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="border-t border-gray-200 px-4 py-6">
-                      <a href="#" className="-m-2 flex items-center p-2">
-                        <img
-                          alt=""
-                          src="https://tailwindui.com/plus/img/flags/flag-canada.svg"
-                          className="block h-auto w-5 shrink-0"
-                        />
-                        <span className="ml-3 block text-base font-medium text-gray-900">
-                          CAD
-                        </span>
-                        <span className="sr-only">, change currency</span>
-                      </a>
+                            Sign out
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </DialogPanel>
                 </div>
@@ -242,46 +243,40 @@ const LayoutComponent = ({ children }) => {
                       </div> */}
 
                       <div className="ml-auto flex items-center">
-                        <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
-                          {!token && (
-                            <a
-                              href="/login"
-                              className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                        {/* Sign In / Sign Up Section - Now Visible on Mobile */}
+                        <div className="flex flex-1 items-center justify-end space-x-6">
+                          {!token ? (
+                            <>
+                              <a
+                                href="/login"
+                                className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                              >
+                                Sign in
+                              </a>
+                              <span
+                                aria-hidden="true"
+                                className="h-6 w-px bg-gray-200"
+                              />
+                              <a
+                                href="/signup"
+                                className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                              >
+                                Sign up
+                              </a>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                logout();
+                                removeTokens();
+                                router.push("/");
+                              }}
+                              className="text-sm font-medium text-red-600 hover:text-red-800"
                             >
-                              Sign in
-                            </a>
-                          )}
-
-                          <span
-                            aria-hidden="true"
-                            className="h-6 w-px bg-gray-200"
-                          />
-                          {!token && (
-                            <a
-                              href="/signup"
-                              className="-m-2 block p-2 font-medium text-gray-900"
-                            >
-                              Sign up
-                            </a>
+                              Sign out
+                            </button>
                           )}
                         </div>
-
-                        {/* <div className="hidden lg:ml-8 lg:flex">
-                      <a
-                        href="#"
-                        className="flex items-center text-gray-700 hover:text-gray-800"
-                      >
-                        <img
-                          alt=""
-                          src="https://tailwindui.com/plus/img/flags/flag-canada.svg"
-                          className="block h-auto w-5 shrink-0"
-                        />
-                        <span className="ml-3 block text-sm font-medium">
-                          CAD
-                        </span>
-                        <span className="sr-only">, change currency</span>
-                      </a>
-                    </div> */}
 
                         {/* Search */}
                         <div className="flex lg:ml-6">

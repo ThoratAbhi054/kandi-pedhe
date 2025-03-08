@@ -41,12 +41,12 @@ const login = (username, password) => {
 
 const logout = () => {
   const refreshToken = getToken("refresh");
-  return api.post({ refresh: refreshToken }, "/auth/logout/");
+  return api.post({ refresh: refreshToken }, "/iam/auth/logout/");
 };
 
 const handleJWTRefresh = () => {
   const refreshToken = getToken("refresh");
-  return api.post({ refresh: refreshToken }, "/auth/login/refresh");
+  return api.post({ refresh: refreshToken }, "/auth/login/refresh/");
 };
 
 const resetPassword = (email) => {

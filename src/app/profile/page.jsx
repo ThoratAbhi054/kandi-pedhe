@@ -19,6 +19,7 @@ export default function CompleteProfilePage() {
     city: "",
     address: [],
     avatar: null,
+    user: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -44,6 +45,7 @@ export default function CompleteProfilePage() {
           contact_no: data.contact_no || "",
           city: data.city || "",
           address: data.address || [],
+          user: data.user || "",
           avatar: data.avatar || null,
         });
         setLoading(false);
@@ -64,24 +66,31 @@ export default function CompleteProfilePage() {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(profile),
+        body: JSON.stringify({
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          email: profile.email,
+          contact_no: profile.contact_no,
+          city: profile.city,
+        }),
       });
 
       if (!res.ok) throw new Error("Profile update failed");
 
       for (const address of profile.address) {
+        const addressData = { ...address, user: profile.user };
         await fetch(`${API_URL}/iam/addresses/`, {
           method: address.id ? "PATCH" : "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(address),
+          body: JSON.stringify(addressData),
         });
       }
 
       alert("Profile updated successfully!");
-      router.push("/carts"); // ✅ Redirect back to checkout after address is added
+      router.push("/carts");
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Failed to update profile.");

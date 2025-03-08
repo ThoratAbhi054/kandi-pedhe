@@ -88,6 +88,7 @@ export default function Example(params) {
   const { addToCart } = useCart(); // ✅ Use `addToCart`
   console.log("license  ===>", products);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(true); // ✅ Loading state
 
   const getReview = async () => {
     try {
@@ -127,6 +128,7 @@ export default function Example(params) {
   }, []);
 
   const getProduct = async () => {
+    setLoading(true); // ✅ Set loading before fetching
     try {
       const res = await fetch(`${API_URL}/cms/products/${id}/`, {
         redirect: "follow",
@@ -136,16 +138,19 @@ export default function Example(params) {
       });
 
       if (!res.ok) {
-        if (res.status === 401) {
-          await signOut();
-        }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
       const data = await res.json();
-      setProducts(data); // Store the fetched data in state
+      setProducts(data);
+      setSelectedImage(
+        data.thumbnail ||
+          (data.images?.length > 0 ? data.images[0].image : null)
+      );
     } catch (err) {
       console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false); // ✅ Stop loading
     }
   };
 
@@ -167,6 +172,14 @@ export default function Example(params) {
       setSelectedImage(products.images[0].image);
     }
   }, [products]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white">
@@ -331,9 +344,15 @@ export default function Example(params) {
                 </button> */}
 
                 <button
-                  type="submit"
+                  type="button"
                   className="flex max-w-xs flex-1 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:w-full"
-                  onClick={() => addToCart(products)}
+                  onClick={() => {
+                    if (!accessToken) {
+                      router.push("/login"); // ✅ Redirects to login if user is not authenticated
+                    } else {
+                      addToCart(products);
+                    }
+                  }}
                 >
                   Add to Cart
                 </button>
