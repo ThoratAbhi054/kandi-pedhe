@@ -154,6 +154,7 @@ function Homepage() {
   const handleSlideChange = (swiper) => {
     const currentSlide = sliders[swiper.activeIndex];
     if (currentSlide?.type === "VIDEO" && videoRefs.current[currentSlide.id]) {
+      videoRefs.current[currentSlide.id].currentTime = 0; // Restart video
       videoRefs.current[currentSlide.id].play();
     }
   };
