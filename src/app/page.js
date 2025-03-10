@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 
 import {
   Dialog,
@@ -32,6 +32,8 @@ import { Navigation, Pagination, Autoplay } from "swiper/modules"; // ✅ Correc
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import videojs from "video.js";
+import "video.js/dist/video-js.css";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -43,6 +45,8 @@ function Homepage() {
   const [favorites, setFavorites] = useState([]);
   const [products, setProducts] = useState([]);
   const [sliders, setSliders] = useState([]);
+  const swiperRef = useRef(null);
+  const videoRefs = useRef({});
 
   const { getToken, logout, removeTokens } = AuthActions();
 
@@ -147,6 +151,19 @@ function Homepage() {
     fetchSliders();
   }, []);
 
+  const handleSlideChange = (swiper) => {
+    const currentSlide = sliders[swiper.activeIndex];
+    if (currentSlide?.type === "VIDEO" && videoRefs.current[currentSlide.id]) {
+      videoRefs.current[currentSlide.id].play();
+    }
+  };
+
+  const handleVideoEnd = () => {
+    if (swiperRef.current) {
+      swiperRef.current.swiper.slideNext();
+    }
+  };
+
   return (
     <div className="bg-white">
       {/* Mobile menu */}
@@ -213,48 +230,47 @@ function Homepage() {
       </Dialog>
 
       <header className="relative overflow-hidden">
-        {/* Hero section */}
         <div className="relative w-full h-[550px]">
           {sliders.length > 0 ? (
             <Swiper
+              ref={swiperRef}
               modules={[Navigation, Pagination, Autoplay]}
               spaceBetween={10}
               slidesPerView={1}
               navigation
               pagination={{ clickable: true }}
-              autoplay={{ delay: 3000 }}
+              autoplay={false} // Disable Swiper autoplay
               loop={true}
+              onSlideChange={handleSlideChange}
               className="w-full h-full"
             >
               {sliders.map((slide) => (
                 <SwiperSlide key={slide.id} className="relative">
                   <div className="relative w-full h-[550px]">
-                    {/* Image */}
-                    <img
-                      src={slide.image}
-                      alt={`Slider ${slide.id}`}
-                      className="w-full h-full object-cover rounded-lg shadow-lg"
-                    />
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-50" />
-                    {/* Text Content */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6">
-                      <h1 className="text-4xl font-extrabold drop-shadow-lg">
-                        इंगळे उद्योग समूह – ५९ वर्षांची अमूल्य सेवा
-                      </h1>
-                      <p className="mt-3 text-lg sm:max-w-2xl drop-shadow-md">
-                        इंगळे कुटुंबियांच्या अथक प्रयत्नांनी आणि ग्राहकांच्या
-                        विश्वासाने सुरू झालेल्या या प्रवासाने आज ५९ वर्षे पूर्ण
-                        केली आहेत.
-                      </p>
-                      {/* Call to Action Button */}
-                      <a
-                        href="#"
-                        className="mt-6 inline-block rounded-md bg-indigo-600 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:bg-indigo-700 transition"
-                      >
-                        अधिक जाणून घ्या
-                      </a>
-                    </div>
+                    {slide.type === "VIDEO" && slide.video ? (
+                      <div className="video-container w-full h-full">
+                        <video
+                          ref={(el) => (videoRefs.current[slide.id] = el)}
+                          id={`video-player-${slide.id}`}
+                          className="video-js w-full h-full"
+                          autoPlay
+                          muted
+                          playsInline
+                          preload="auto"
+                          poster={slide.video.thumbnail}
+                          onEnded={handleVideoEnd}
+                        >
+                          <source src={slide.video.file} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ) : (
+                      <img
+                        src={slide.image}
+                        alt={`Slider ${slide.id}`}
+                        className="w-full h-full object-cover rounded-lg shadow-lg"
+                      />
+                    )}
                   </div>
                 </SwiperSlide>
               ))}

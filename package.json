@@ -29,6 +29,7 @@
     "slick-carousel": "^1.8.1",
     "swiper": "^11.1.11",
     "swr": "^2.3.0",
+    "video.js": "^8.21.0",
     "wretch": "^2.11.0"
   },
   "devDependencies": {
