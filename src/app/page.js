@@ -261,7 +261,10 @@ function Homepage() {
                           poster={slide.video.thumbnail}
                           onEnded={handleVideoEnd}
                         >
-                          <source src={slide.video.file} type="video/mp4" />
+                          <source
+                            src={slide.video.streaming_url}
+                            type="video/mp4"
+                          />
                           Your browser does not support the video tag.
                         </video>
                       </div>
