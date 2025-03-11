@@ -64,7 +64,11 @@ export default function Example() {
 
   const getCart = async () => {
     try {
-      const res = await fetch(`${API_URL}/cms/carts/`, {
+      const url = new URL(`${API_URL}/cms/carts/`);
+
+      url.searchParams.append("status", "DRAFT");
+
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
