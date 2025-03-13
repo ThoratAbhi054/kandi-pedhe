@@ -116,35 +116,102 @@ export default function Example() {
     fetchAddresses();
   }, []);
 
-  const processPayment = async (product) => {
-    console.log("Product --->", product);
+  const processPayment = async (cart) => {
+    console.log("Processing Payment for Cart:", cart);
+
     try {
+      // ✅ Ensure Razorpay SDK is Loaded
+      if (!window.Razorpay) {
+        alert("Razorpay SDK not loaded! Please try again.");
+        return;
+      }
+
+      // ✅ Ensure Order ID Exists
+      if (!cart.razorpay_order_id) {
+        alert("Order ID is missing! Please try again.");
+        return;
+      }
+
       const options = {
-        key: RAZORPAY_KEY_ID, // Replace with your Razorpay key ID
-        amount: product.amount, // Amount in paise (INR)
+        key: RAZORPAY_KEY_ID, // ✅ Use your Razorpay Key
+        amount: cart.amount, // Amount in paise (INR)
         currency: "INR",
         name: "Ingale Pedha House",
-        description: `Payment for ${product.title}`,
-        image: "/images/IngaleLogo.png", // Optional: Add your logo URL
-
+        description: `Payment for ${cart.title}`,
+        image: "/images/IngaleLogo.png", // ✅ Optional: Add a logo URL
+        order_id: cart.razorpay_order_id, // ✅ Use order ID from backend
         prefill: {
-          name: profile.first_name, // Example: Replace with customer name
-          email: profile.email, // Example: Replace with customer email
-          contact: profile.contact_no, // Example: Replace with customer contact
+          name: profile.first_name || "Customer", // ✅ Customer name
+          email: profile.email || "customer@example.com", // ✅ Customer email
+          contact: profile.contact_no || "9999999999", // ✅ Customer contact
         },
         theme: {
           color: "#3399cc",
         },
+        handler: async function (response) {
+          console.log("Razorpay Payment Success:", response);
+
+          // ✅ Ensure All Required Fields are Present
+          const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+            response;
+
+          if (
+            !razorpay_payment_id ||
+            !razorpay_order_id ||
+            !razorpay_signature
+          ) {
+            alert("Payment details missing. Please contact support.");
+            return;
+          }
+
+          // ✅ Call Validate Payment API
+          try {
+            const validateResponse = await fetch(
+              `${API_URL}/cms/carts/${cart.cart_id}/validate_payment/`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({
+                  razorpay_order_id,
+                  razorpay_payment_id,
+                  razorpay_signature,
+                }),
+              }
+            );
+
+            if (validateResponse.status === 204) {
+              // ✅ Handle Success (204 No Content)
+              console.log("Payment validation successful!");
+              alert("Payment Successful! 🎉 Your order has been confirmed.");
+              router.push("/my-purchases"); // ✅ Redirect to purchases page
+            } else {
+              // ✅ Handle Unexpected Responses
+              const data = await validateResponse.json();
+              console.error("Unexpected Response:", data);
+              alert("Payment verification failed. Please contact support.");
+            }
+          } catch (error) {
+            console.error("Error Validating Payment:", error);
+            alert("Payment verification failed. Please contact support.");
+          }
+        },
       };
 
-      // Open Razorpay checkout dialog
+      // ✅ Handle Payment Failure
       const paymentObject = new window.Razorpay(options);
       paymentObject.on("payment.failed", function (response) {
+        console.error("Payment Failed:", response.error);
         alert("Payment Failed: " + response.error.description);
       });
+
+      // ✅ Open Razorpay Checkout
       paymentObject.open();
     } catch (error) {
-      console.error("Error processing payment:", error);
+      console.error("Error Processing Payment:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
 
