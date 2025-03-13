@@ -127,7 +127,7 @@ export default function Example() {
       }
 
       // ✅ Ensure Order ID Exists
-      if (!cart.razorpay_order_id) {
+      if (!cart.order_id) {
         alert("Order ID is missing! Please try again.");
         return;
       }
@@ -139,7 +139,7 @@ export default function Example() {
         name: "Ingale Pedha House",
         description: `Payment for ${cart.title}`,
         image: "/images/IngaleLogo.png", // ✅ Optional: Add a logo URL
-        order_id: cart.razorpay_order_id, // ✅ Use order ID from backend
+        order_id: cart.order_id, // ✅ Use order ID from backend
         prefill: {
           name: profile.first_name || "Customer", // ✅ Customer name
           email: profile.email || "customer@example.com", // ✅ Customer email
