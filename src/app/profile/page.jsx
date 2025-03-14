@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "../../utils/constant";
 import { AuthActions } from "../../app/auth/utils";
+import { Dialog } from "@headlessui/react";
 
 export default function CompleteProfilePage() {
   const { getToken } = AuthActions();
@@ -17,13 +18,16 @@ export default function CompleteProfilePage() {
     email: "",
     contact_no: "",
     city: "",
-    address: [],
     avatar: null,
     user: "",
+    address: [],
   });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [isNewAddress, setIsNewAddress] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -39,14 +43,14 @@ export default function CompleteProfilePage() {
         const data = await res.json();
         setProfile({
           id: data.id || "",
-          first_name: data?.first_name || "",
-          last_name: data?.last_name || "",
-          email: data?.email || "",
+          first_name: data.first_name || "",
+          last_name: data.last_name || "",
+          email: data.email || "",
           contact_no: data.contact_no || "",
           city: data.city || "",
-          address: data.address || [],
-          user: data.user || "",
           avatar: data.avatar || null,
+          user: data.user || "",
+          address: data.address || [],
         });
         setLoading(false);
       } catch (error) {
@@ -56,46 +60,92 @@ export default function CompleteProfilePage() {
     fetchProfile();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleEdit = (address) => {
+    setSelectedAddress({ ...address });
+    setIsNewAddress(false);
+    setIsEditOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setSelectedAddress({
+      address1: "",
+      address2: "",
+      district: "",
+      state: "",
+      country: "",
+      pincode: "",
+      contact_no: "",
+      email: "",
+      default: false,
+    });
+    setIsNewAddress(true);
+    setIsEditOpen(true);
+  };
+
+  const handleSaveChanges = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/iam/users/${profile.id}/`, {
-        method: "PATCH",
+      const method = isNewAddress ? "POST" : "PATCH";
+      const endpoint = isNewAddress
+        ? `${API_URL}/iam/addresses/`
+        : `${API_URL}/iam/addresses/${selectedAddress.id}/`;
+
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          email: profile.email,
-          contact_no: profile.contact_no,
-          city: profile.city,
+          ...selectedAddress,
+          user: profile.user,
         }),
       });
 
-      if (!res.ok) throw new Error("Profile update failed");
+      if (!response.ok) throw new Error("Failed to save address");
 
-      for (const address of profile.address) {
-        const addressData = { ...address, user: profile.user };
-        await fetch(`${API_URL}/iam/addresses/`, {
-          method: address.id ? "PATCH" : "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(addressData),
-        });
-      }
+      const updatedAddress = await response.json();
 
-      alert("Profile updated successfully!");
-      router.push("/carts");
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        address: isNewAddress
+          ? [...prevProfile.address, updatedAddress]
+          : prevProfile.address.map((addr) =>
+              addr.id === selectedAddress.id ? updatedAddress : addr
+            ),
+      }));
+
+      alert(
+        isNewAddress
+          ? "Address added successfully!"
+          : "Address updated successfully!"
+      );
+      setIsEditOpen(false);
     } catch (error) {
-      console.error("Error updating profile:", error);
-      alert("Failed to update profile.");
+      console.error("Error saving address:", error);
+      alert("Failed to save address.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const setDefaultAddress = async (addressId) => {
+    try {
+      const response = await fetch(`${API_URL}/iam/addresses/${addressId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // FIXED: Added Authorization header
+        },
+        body: JSON.stringify({ default: true }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update default address");
+
+      fetchAddresses(); // Refresh addresses list after update
+    } catch (error) {
+      console.error("Error updating default address:", error);
+      alert("Failed to update default address. Please try again.");
     }
   };
 
@@ -111,7 +161,9 @@ export default function CompleteProfilePage() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
         Complete Your Profile 📝
       </h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
+
+      {/* Profile Form */}
+      <form className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input
             type="text"
@@ -120,7 +172,7 @@ export default function CompleteProfilePage() {
               setProfile({ ...profile, first_name: e.target.value })
             }
             placeholder="First Name"
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+            className="w-full p-3 border rounded-lg"
             required
           />
           <input
@@ -130,7 +182,7 @@ export default function CompleteProfilePage() {
               setProfile({ ...profile, last_name: e.target.value })
             }
             placeholder="Last Name"
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+            className="w-full p-3 border rounded-lg"
             required
           />
         </div>
@@ -139,7 +191,7 @@ export default function CompleteProfilePage() {
           value={profile.email}
           onChange={(e) => setProfile({ ...profile, email: e.target.value })}
           placeholder="Email"
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          className="w-full p-3 border rounded-lg"
           required
         />
         <input
@@ -149,182 +201,110 @@ export default function CompleteProfilePage() {
             setProfile({ ...profile, contact_no: e.target.value })
           }
           placeholder="Phone Number"
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          className="w-full p-3 border rounded-lg"
           required
         />
-        <input
-          type="text"
-          value={profile.city}
-          onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-          placeholder="City"
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-        />
-
-        {profile.address.map((addr, idx) => (
-          <div key={idx} className="border p-4 rounded-lg bg-gray-100">
-            <input
-              type="text"
-              value={addr.address1}
-              onChange={(e) => {
-                const newAddresses = [...profile.address];
-                newAddresses[idx].address1 = e.target.value;
-                setProfile({ ...profile, address: newAddresses });
-              }}
-              placeholder="Address 1"
-              className="w-full p-2 border rounded-lg mb-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="text"
-              value={addr.address2}
-              onChange={(e) => {
-                const newAddresses = [...profile.address];
-                newAddresses[idx].address2 = e.target.value;
-                setProfile({ ...profile, address: newAddresses });
-              }}
-              placeholder="Address 2"
-              className="w-full p-2 border rounded-lg mb-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-            />
-            <input
-              type="text"
-              value={addr.pincode}
-              onChange={(e) => {
-                const newAddresses = [...profile.address];
-                newAddresses[idx].pincode = e.target.value;
-                setProfile({ ...profile, address: newAddresses });
-              }}
-              placeholder="Pincode"
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="text"
-              value={addr.city}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  address: profile.address.map((a, i) =>
-                    i === idx ? { ...a, city: e.target.value } : a
-                  ),
-                })
-              }
-              placeholder="City"
-              className="w-full p-2 border rounded-lg mb-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="text"
-              value={addr.district}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  address: profile.address.map((a, i) =>
-                    i === idx ? { ...a, district: e.target.value } : a
-                  ),
-                })
-              }
-              placeholder="District"
-              className="w-full p-2 border rounded-lg mb-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="text"
-              value={addr.contact_no}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  address: profile.address.map((a, i) =>
-                    i === idx ? { ...a, contact_no: e.target.value } : a
-                  ),
-                })
-              }
-              placeholder="Contact No"
-              className="w-full p-2 border rounded-lg mb-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="email"
-              value={addr.email}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  address: profile.address.map((a, i) =>
-                    i === idx ? { ...a, email: e.target.value } : a
-                  ),
-                })
-              }
-              placeholder="Email"
-              className="w-full p-2 border rounded-lg mb-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="text"
-              value={addr.state}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  address: profile.address.map((a, i) =>
-                    i === idx ? { ...a, state: e.target.value } : a
-                  ),
-                })
-              }
-              placeholder="State"
-              className="w-full p-2 border rounded-lg mb-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="text"
-              value={addr.country}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  address: profile.address.map((a, i) =>
-                    i === idx ? { ...a, country: e.target.value } : a
-                  ),
-                })
-              }
-              placeholder="Country"
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              required
-            />
-            <input
-              type="checkbox"
-              checked={addr.default}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  address: profile.address.map((a, i) =>
-                    i === idx ? { ...a, default: e.target.checked } : a
-                  ),
-                })
-              }
-              className="mr-2"
-            />{" "}
-            Default Address
-          </div>
-        ))}
-
-        <button
-          type="button"
-          onClick={() =>
-            setProfile({ ...profile, address: [...profile.address, {}] })
-          }
-          className="w-full bg-green-500 text-white p-3 rounded-md font-semibold shadow-md hover:bg-green-600"
-        >
-          Add Address
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          className={`w-full py-3 rounded-lg text-white font-semibold transition ${
-            saving
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-500 hover:bg-indigo-600"
-          }`}
-        >
-          {saving ? "Saving..." : "Save & Continue"}
-        </button>
       </form>
+
+      {/* Address List */}
+      <section className="mt-6">
+        <h2 className="text-lg font-medium text-gray-900">Your Addresses</h2>
+        <button
+          onClick={handleAddNew}
+          className="mt-3 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700"
+        >
+          + Add Address
+        </button>
+        <div className="mt-4 space-y-3">
+          {profile.address.map((address) => (
+            <div
+              key={address.id}
+              className="flex justify-between items-start p-4 border rounded-lg bg-gray-100"
+            >
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {address.address1},
+                </p>
+                {address.address2 && (
+                  <p className="text-sm text-gray-700">{address.address2},</p>
+                )}
+                <p className="text-sm text-gray-700">
+                  {address.city}, {address.state} - {address.pincode}
+                </p>
+                <p className="text-sm text-gray-600">📞 {address.contact_no}</p>
+                <p className="text-sm text-gray-600">✉️ {address.email}</p>
+              </div>
+              {address.default ? (
+                <p className="text-sm font-semibold text-green-600">
+                  ✅ Default Address
+                </p>
+              ) : (
+                <button
+                  onClick={() => setDefaultAddress(address.id)}
+                  className="mt-2 text-sm text-blue-600 underline"
+                >
+                  Set as Default
+                </button>
+              )}
+              <button
+                onClick={() => handleEdit(address)}
+                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+              >
+                Edit
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Edit/Add Address Modal */}
+      {isEditOpen && (
+        <Dialog
+          open={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          className="fixed inset-0 flex items-center justify-center bg-black/30"
+        >
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              {isNewAddress ? "Add Address" : "Edit Address"}
+            </h2>
+            {selectedAddress && (
+              <div className="space-y-3">
+                {[
+                  "address1",
+                  "address2",
+                  "district",
+                  "state",
+                  "country",
+                  "pincode",
+                  "contact_no",
+                  "email",
+                ].map((field) => (
+                  <input
+                    key={field}
+                    type="text"
+                    value={selectedAddress[field] || ""}
+                    onChange={(e) =>
+                      setSelectedAddress({
+                        ...selectedAddress,
+                        [field]: e.target.value,
+                      })
+                    }
+                    placeholder={field.replace("_", " ").toUpperCase()}
+                    className="w-full p-2 border rounded-lg"
+                  />
+                ))}
+                <button
+                  onClick={handleSaveChanges}
+                  className="w-full bg-green-500 p-3 rounded-lg text-white"
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            )}
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }
