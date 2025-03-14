@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { AuthActions } from "../app/auth/utils.js";
 import { useCart } from "../context/CartContext.jsx";
+import { FaUserCircle } from "react-icons/fa"; // ✅ Import Profile Icon
 
 const navigation = {
   pages: [{ id: "1", name: "Stores", href: "#" }],
@@ -265,16 +266,25 @@ const LayoutComponent = ({ children }) => {
                               </a>
                             </>
                           ) : (
-                            <button
-                              onClick={() => {
-                                logout();
-                                removeTokens();
-                                router.push("/");
-                              }}
-                              className="text-sm font-medium text-red-600 hover:text-red-800"
-                            >
-                              Sign out
-                            </button>
+                            <>
+                              <button
+                                onClick={() => {
+                                  logout();
+                                  removeTokens();
+                                  router.push("/");
+                                }}
+                                className="text-sm font-medium text-red-600 hover:text-red-800"
+                              >
+                                Sign out
+                              </button>
+                              <button
+                                onClick={() => router.push("/profile")}
+                                className="mr-4 p-2 text-gray-700 hover:text-gray-900"
+                              >
+                                <FaUserCircle className="size-6" />
+                                <span className="sr-only">Profile</span>
+                              </button>
+                            </>
                           )}
                         </div>
 
