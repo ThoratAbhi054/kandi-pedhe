@@ -392,7 +392,7 @@ export default function Example() {
                   type="button"
                   onClick={() => checkout(cart[0]?.id)}
                   disabled={cart.length === 0 || !selectedAddress}
-                  className={`w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none ${
+                  className={`w-full max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none ${
                     cart.length === 0 || !selectedAddress
                       ? "opacity-50 cursor-not-allowed"
                       : ""
