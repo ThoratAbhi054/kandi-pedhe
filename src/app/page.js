@@ -185,7 +185,7 @@ function Homepage() {
               onSlideChange={handleSlideChange}
               className="w-full h-full"
             >
-              {sliders.map((slide) => (
+              {sliders.map((slide, index) => (
                 <SwiperSlide key={slide.id} className="relative">
                   <div className="relative w-full h-full">
                     {slide.type === "VIDEO" && slide.video ? (
