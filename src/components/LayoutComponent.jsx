@@ -21,7 +21,6 @@ import {
   ShoppingCartIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import "tailwindcss/tailwind.css";
 import { API_URL } from "../utils/constant.js";
 import Link from "next/link.js";
 import { useRouter } from "next/navigation";
