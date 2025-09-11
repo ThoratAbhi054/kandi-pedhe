@@ -1,31 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { API_URL } from "../../utils/constant";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const SignupPage = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    first_name: "",
-    last_name: "",
-  });
-  const [error, setError] = useState(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+    watch,
+  } = useForm();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
+  const password = watch("password");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSignup = async (event) => {
-    event.preventDefault(); // Prevent form submission
-    setError(null);
+  const onSubmit = async (data) => {
+    setIsLoading(true);
     setSuccessMessage("");
 
     try {
@@ -34,7 +36,7 @@ const SignupPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -44,140 +46,342 @@ const SignupPage = () => {
         );
       }
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      Cookies.set("accessToken", data.accessToken, {
+      Cookies.set("accessToken", responseData.accessToken, {
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
         expires: 1,
       });
 
-      Cookies.set("refreshToken", data.refreshToken, {
+      Cookies.set("refreshToken", responseData.refreshToken, {
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
         expires: 7,
       });
 
       setSuccessMessage("Signup successful! Redirecting...");
-      router.push("/"); // Redirect to the root page
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
     } catch (error) {
-      setError(error.message);
+      setError("root", {
+        type: "manual",
+        message: error.message,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm flex flex-col items-center">
-        <img alt="" src="/images/IngaleLogo.png" className="h-24 w-36" />
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Signup
-        </h2>
-      </div>
-
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form onSubmit={handleSignup} className="space-y-6">
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-900"
-            >
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <div className="mx-auto h-20 w-20 relative">
+            <Image
+              src="/images/IngaleLogo.png"
+              alt="Ingale Pedha House"
+              fill
+              className="object-contain"
+              priority
             />
           </div>
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            Create your account
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Join us and start your sweet journey today
+          </p>
+        </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-900"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
-            />
+        {/* Form */}
+        <div className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Success Message */}
+            {successMessage && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+                {successMessage}
+              </div>
+            )}
+
+            {/* Error Message */}
+            {errors.root && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {errors.root.message}
+              </div>
+            )}
+
+            {/* Name Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="first_name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  First Name
+                </label>
+                <input
+                  id="first_name"
+                  {...register("first_name", {
+                    required: "First name is required",
+                    minLength: {
+                      value: 2,
+                      message: "First name must be at least 2 characters",
+                    },
+                  })}
+                  className={`input ${errors.first_name ? "input-error" : ""}`}
+                  placeholder="John"
+                />
+                {errors.first_name && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.first_name.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="last_name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Last Name
+                </label>
+                <input
+                  id="last_name"
+                  {...register("last_name", {
+                    required: "Last name is required",
+                    minLength: {
+                      value: 2,
+                      message: "Last name must be at least 2 characters",
+                    },
+                  })}
+                  className={`input ${errors.last_name ? "input-error" : ""}`}
+                  placeholder="Doe"
+                />
+                {errors.last_name && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.last_name.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Username Field */}
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Username
+              </label>
+              <input
+                id="username"
+                {...register("username", {
+                  required: "Username is required",
+                  minLength: {
+                    value: 3,
+                    message: "Username must be at least 3 characters",
+                  },
+                  pattern: {
+                    value: /^[a-zA-Z0-9_]+$/,
+                    message:
+                      "Username can only contain letters, numbers, and underscores",
+                  },
+                })}
+                className={`input ${errors.username ? "input-error" : ""}`}
+                placeholder="johndoe"
+              />
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.username.message}
+                </p>
+              )}
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Please enter a valid email address",
+                  },
+                })}
+                className={`input ${errors.email ? "input-error" : ""}`}
+                placeholder="john@example.com"
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters",
+                    },
+                    pattern: {
+                      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                      message:
+                        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+                    },
+                  })}
+                  type={showPassword ? "text" : "password"}
+                  className={`input pr-10 ${
+                    errors.password ? "input-error" : ""
+                  }`}
+                  placeholder="Create a strong password"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            {/* Confirm Password Field */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  {...register("confirmPassword", {
+                    required: "Please confirm your password",
+                    validate: (value) =>
+                      value === password || "Passwords do not match",
+                  })}
+                  type={showConfirmPassword ? "text" : "password"}
+                  className={`input pr-10 ${
+                    errors.confirmPassword ? "input-error" : ""
+                  }`}
+                  placeholder="Confirm your password"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading || isSubmitting}
+                className="btn btn-primary btn-lg w-full flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Sign In Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
+              >
+                Sign in here
+              </Link>
+            </p>
           </div>
+        </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-900"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="first_name"
-              className="block text-sm font-medium text-gray-900"
-            >
-              First Name
-            </label>
-            <input
-              id="first_name"
-              name="first_name"
-              type="text"
-              value={formData.first_name}
-              onChange={handleChange}
-              required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="last_name"
-              className="block text-sm font-medium text-gray-900"
-            >
-              Last Name
-            </label>
-            <input
-              id="last_name"
-              name="last_name"
-              type="text"
-              value={formData.last_name}
-              onChange={handleChange}
-              required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-          >
-            Sign up
-          </button>
-        </form>
-
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-        {successMessage && (
-          <p className="mt-4 text-sm text-green-600">{successMessage}</p>
-        )}
+        {/* Additional Info */}
+        <div className="text-center">
+          <p className="text-xs text-gray-500">
+            By creating an account, you agree to our{" "}
+            <Link href="/terms" className="text-blue-600 hover:text-blue-500">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
+              Privacy Policy
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
