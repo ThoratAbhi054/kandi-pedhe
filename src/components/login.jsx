@@ -24,20 +24,25 @@ const Login = () => {
     setIsLoading(true);
     try {
       const response = await login(data.username, data.password);
-      const json = await response.json();
+      console.log("Login response:", response);
 
-      if (response.ok) {
-        storeToken(json.accessToken, "access");
-        storeToken(json.refreshToken, "refresh");
+      if (response && (response.accessToken || response.refreshToken)) {
+        console.log("Login successful, storing tokens");
+        storeToken(response.accessToken, "access");
+        storeToken(response.refreshToken, "refresh");
         router.push("/");
       } else {
+        console.log("Login failed, no tokens found");
         setError("root", {
           type: "manual",
-          message: json.message || "Invalid username or password",
+          message:
+            response.message ||
+            response.detail ||
+            "Invalid username or password",
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("Login error:", err);
       setError("root", {
         type: "manual",
         message: "Network error. Please try again.",
