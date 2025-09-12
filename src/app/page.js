@@ -27,6 +27,7 @@ import { CategorySlider } from "../components/categories";
 import { ProductCard, CategoryCard } from "../components/card";
 import Link from "next/link";
 import { AuthActions } from "../app/auth/utils.js";
+import { useCart } from "../context/CartContext.jsx";
 import Footer from "../components/footer.jsx";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules"; // ✅ Correct Import
@@ -51,6 +52,7 @@ function Homepage() {
   const videoRefs = useRef({});
 
   const { getToken, logout, removeTokens } = AuthActions();
+  const { addToCart } = useCart();
 
   const handleLogout = () => {
     logout()
@@ -321,13 +323,7 @@ function Homepage() {
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <ProductCard
-                    product={product}
-                    onAddToCart={(product) => {
-                      // Add to cart logic here
-                      console.log("Added to cart:", product);
-                    }}
-                  />
+                  <ProductCard product={product} onAddToCart={addToCart} />
                 </div>
               ))}
             </div>
@@ -412,13 +408,7 @@ function Homepage() {
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <ProductCard
-                    product={favorite}
-                    onAddToCart={(product) => {
-                      // Add to cart logic here
-                      console.log("Added to cart:", product);
-                    }}
-                  />
+                  <ProductCard product={favorite} onAddToCart={addToCart} />
                 </div>
               ))}
             </div>

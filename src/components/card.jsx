@@ -296,10 +296,44 @@ const ProductCard = forwardRef(function ProductCard(
         {/* Add to Cart Button */}
         {showAddToCart && (
           <button
-            onClick={(e) => {
+            onClick={async (e) => {
               e.preventDefault();
               e.stopPropagation();
-              onAddToCart?.(product);
+              try {
+                await onAddToCart?.(product);
+                // Show success feedback
+                const button = e.currentTarget;
+                const originalText = button.innerHTML;
+                button.innerHTML = `
+                  <span class="flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Added!
+                  </span>
+                `;
+                button.classList.add("bg-green-500", "hover:bg-green-600");
+                button.classList.remove(
+                  "from-orange-500",
+                  "to-yellow-500",
+                  "hover:from-orange-600",
+                  "hover:to-yellow-600"
+                );
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                  button.innerHTML = originalText;
+                  button.classList.remove("bg-green-500", "hover:bg-green-600");
+                  button.classList.add(
+                    "from-orange-500",
+                    "to-yellow-500",
+                    "hover:from-orange-600",
+                    "hover:to-yellow-600"
+                  );
+                }, 2000);
+              } catch (error) {
+                console.error("Error adding to cart:", error);
+              }
             }}
             className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
           >

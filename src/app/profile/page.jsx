@@ -70,6 +70,7 @@ export default function CompleteProfilePage() {
     setSelectedAddress({
       address1: "",
       address2: "",
+      city: "",
       district: "",
       state: "",
       country: "",
@@ -102,7 +103,20 @@ export default function CompleteProfilePage() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to save address");
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Address save error:", errorData);
+
+        // Show specific validation errors
+        if (errorData.city) {
+          alert(`City field error: ${errorData.city[0]}`);
+        } else if (errorData.detail) {
+          alert(`Error: ${errorData.detail}`);
+        } else {
+          alert("Failed to save address. Please check all required fields.");
+        }
+        return;
+      }
 
       const updatedAddress = await response.json();
 
@@ -123,7 +137,7 @@ export default function CompleteProfilePage() {
       setIsEditOpen(false);
     } catch (error) {
       console.error("Error saving address:", error);
-      alert("Failed to save address.");
+      alert("Network error. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -269,30 +283,47 @@ export default function CompleteProfilePage() {
               {isNewAddress ? "Add Address" : "Edit Address"}
             </h2>
             {selectedAddress && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {[
-                  "address1",
-                  "address2",
-                  "district",
-                  "state",
-                  "country",
-                  "pincode",
-                  "contact_no",
-                  "email",
-                ].map((field) => (
-                  <input
-                    key={field}
-                    type="text"
-                    value={selectedAddress[field] || ""}
-                    onChange={(e) =>
-                      setSelectedAddress({
-                        ...selectedAddress,
-                        [field]: e.target.value,
-                      })
-                    }
-                    placeholder={field.replace("_", " ").toUpperCase()}
-                    className="w-full p-2 border rounded-lg"
-                  />
+                  { key: "address1", label: "Address Line 1", required: true },
+                  { key: "address2", label: "Address Line 2", required: false },
+                  { key: "city", label: "City", required: true },
+                  { key: "district", label: "District", required: true },
+                  { key: "state", label: "State", required: true },
+                  { key: "country", label: "Country", required: true },
+                  { key: "pincode", label: "Pincode", required: true },
+                  {
+                    key: "contact_no",
+                    label: "Contact Number",
+                    required: true,
+                  },
+                  { key: "email", label: "Email", required: true },
+                ].map(({ key, label, required }) => (
+                  <div key={key}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {label}{" "}
+                      {required && <span className="text-red-500">*</span>}
+                    </label>
+                    <input
+                      type={
+                        key === "email"
+                          ? "email"
+                          : key === "contact_no"
+                          ? "tel"
+                          : "text"
+                      }
+                      value={selectedAddress[key] || ""}
+                      onChange={(e) =>
+                        setSelectedAddress({
+                          ...selectedAddress,
+                          [key]: e.target.value,
+                        })
+                      }
+                      placeholder={`Enter ${label.toLowerCase()}`}
+                      required={required}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
                 ))}
                 <button
                   onClick={handleSaveChanges}
