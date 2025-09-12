@@ -242,20 +242,15 @@ const SignupPage = () => {
                   {...register("password", {
                     required: "Password is required",
                     minLength: {
-                      value: 8,
-                      message: "Password must be at least 8 characters",
-                    },
-                    pattern: {
-                      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                      message:
-                        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+                      value: 4,
+                      message: "Password must be at least 4 characters",
                     },
                   })}
                   type={showPassword ? "text" : "password"}
                   className={`input pr-10 ${
                     errors.password ? "input-error" : ""
                   }`}
-                  placeholder="Create a strong password"
+                  placeholder="Create a password (min 4 characters)"
                 />
                 <button
                   type="button"
