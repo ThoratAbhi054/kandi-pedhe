@@ -330,24 +330,163 @@ const CategoryCard = forwardRef(function CategoryCard(
   { category, className, ...props },
   ref
 ) {
+  const productCount = category.product_count || 0;
+  const isPopular = productCount > 50; // Consider popular if more than 50 products
+  const isNew =
+    category.created_at &&
+    new Date(category.created_at) >
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // New if created within 30 days
+
   return (
     <Card
       ref={ref}
       href={`/categories/${category.id}`}
-      className={clsx("w-full max-w-sm", className)}
+      className={clsx(
+        "group relative w-full max-w-sm bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden",
+        className
+      )}
       {...props}
     >
-      <CardImage
-        src={category.thumbnail}
-        alt={category.name}
-        className="aspect-[4/3]"
-      />
-      <CardContent>
-        <CardTitle>{category.name}</CardTitle>
+      {/* Category Image Container */}
+      <div className="relative overflow-hidden rounded-t-2xl">
+        <CardImage
+          src={category.thumbnail}
+          alt={category.name}
+          className="aspect-[4/3] w-full"
+        />
+
+        {/* Category Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {isPopular && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500 text-white shadow-lg">
+              <svg
+                className="w-3 h-3 mr-1"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Popular
+            </span>
+          )}
+          {isNew && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500 text-white shadow-lg">
+              NEW
+            </span>
+          )}
+        </div>
+
+        {/* Product Count Badge */}
+        <div className="absolute top-3 right-3">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-sm text-gray-700 shadow-lg">
+            {productCount} items
+          </span>
+        </div>
+
+        {/* Explore Overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Navigate to category
+              window.location.href = `/categories/${category.id}`;
+            }}
+            className="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-gray-900 px-6 py-3 rounded-full font-semibold text-sm shadow-lg hover:bg-gray-100 flex items-center gap-2"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+            Explore Category
+          </button>
+        </div>
+      </div>
+
+      {/* Category Content */}
+      <div className="p-5">
+        {/* Category Title */}
+        <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 mb-2 line-clamp-2">
+          {category.name}
+        </h3>
+
+        {/* Category Description */}
         {category.description && (
-          <CardDescription>{category.description}</CardDescription>
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+            {category.description}
+          </p>
         )}
-      </CardContent>
+
+        {/* Category Stats */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <span className="flex items-center gap-1">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                />
+              </svg>
+              {productCount} Products
+            </span>
+            {category.is_featured && (
+              <span className="flex items-center gap-1 text-orange-500">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                Featured
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* View Category Button */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = `/categories/${category.id}`;
+          }}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+            View Category
+          </span>
+        </button>
+      </div>
     </Card>
   );
 });
