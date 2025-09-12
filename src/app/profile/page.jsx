@@ -163,179 +163,530 @@ export default function CompleteProfilePage() {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-lg font-semibold text-gray-700 animate-pulse">
-        Loading...
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+          <p className="mt-6 text-lg text-gray-600 font-medium">
+            Loading your profile...
+          </p>
+        </div>
       </div>
     );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg mt-10 border border-gray-200">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Complete Your Profile 📝
-      </h1>
-
-      {/* Profile Form */}
-      <form className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input
-            type="text"
-            value={profile.first_name}
-            onChange={(e) =>
-              setProfile({ ...profile, first_name: e.target.value })
-            }
-            placeholder="First Name"
-            className="w-full p-3 border rounded-lg"
-            required
-          />
-          <input
-            type="text"
-            value={profile.last_name}
-            onChange={(e) =>
-              setProfile({ ...profile, last_name: e.target.value })
-            }
-            placeholder="Last Name"
-            className="w-full p-3 border rounded-lg"
-            required
-          />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">My Profile</h1>
+          <p className="text-lg text-gray-600">
+            Manage your personal information and addresses
+          </p>
         </div>
-        <input
-          type="email"
-          value={profile.email}
-          onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-          placeholder="Email"
-          className="w-full p-3 border rounded-lg"
-          required
-        />
-        <input
-          type="text"
-          value={profile.contact_no}
-          onChange={(e) =>
-            setProfile({ ...profile, contact_no: e.target.value })
-          }
-          placeholder="Phone Number"
-          className="w-full p-3 border rounded-lg"
-          required
-        />
-      </form>
 
-      {/* Address List */}
-      <section className="mt-6">
-        <h2 className="text-lg font-medium text-gray-900">Your Addresses</h2>
-        <button
-          onClick={handleAddNew}
-          className="mt-3 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700"
-        >
-          + Add Address
-        </button>
-        <div className="mt-4 space-y-3">
-          {profile.address.map((address) => (
-            <div
-              key={address.id}
-              className="flex justify-between items-start p-4 border rounded-lg bg-gray-100"
-            >
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  {address.address1},
-                </p>
-                {address.address2 && (
-                  <p className="text-sm text-gray-700">{address.address2},</p>
-                )}
-                <p className="text-sm text-gray-700">
-                  {address.city}, {address.state} - {address.pincode}
-                </p>
-                <p className="text-sm text-gray-600">📞 {address.contact_no}</p>
-                <p className="text-sm text-gray-600">✉️ {address.email}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Profile Information Card */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              {/* Profile Header */}
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-8 text-center">
+                <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  {profile.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <svg
+                      className="w-12 h-12 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <h2 className="text-xl font-bold text-white">
+                  {profile.first_name} {profile.last_name}
+                </h2>
+                <p className="text-blue-100">{profile.email}</p>
               </div>
-              {address.default ? (
-                <p className="text-sm font-semibold text-green-600">
-                  ✅ Default Address
-                </p>
-              ) : (
-                <button
-                  onClick={() => setDefaultAddress(address.id)}
-                  className="mt-2 text-sm text-blue-600 underline"
-                >
-                  Set as Default
-                </button>
-              )}
-              <button
-                onClick={() => handleEdit(address)}
-                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
-              >
-                Edit
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Edit/Add Address Modal */}
-      {isEditOpen && (
-        <Dialog
-          open={isEditOpen}
-          onClose={() => setIsEditOpen(false)}
-          className="fixed inset-0 flex items-center justify-center bg-black/30"
-        >
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              {isNewAddress ? "Add Address" : "Edit Address"}
-            </h2>
-            {selectedAddress && (
-              <div className="space-y-4">
-                {[
-                  { key: "address1", label: "Address Line 1", required: true },
-                  { key: "address2", label: "Address Line 2", required: false },
-                  { key: "city", label: "City", required: true },
-                  { key: "district", label: "District", required: true },
-                  { key: "state", label: "State", required: true },
-                  { key: "country", label: "Country", required: true },
-                  { key: "pincode", label: "Pincode", required: true },
-                  {
-                    key: "contact_no",
-                    label: "Contact Number",
-                    required: true,
-                  },
-                  { key: "email", label: "Email", required: true },
-                ].map(({ key, label, required }) => (
-                  <div key={key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {label}{" "}
-                      {required && <span className="text-red-500">*</span>}
+              {/* Profile Form */}
+              <div className="p-6">
+                <form className="space-y-6">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        First Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profile.first_name}
+                        onChange={(e) =>
+                          setProfile({ ...profile, first_name: e.target.value })
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder="Enter your first name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Last Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profile.last_name}
+                        onChange={(e) =>
+                          setProfile({ ...profile, last_name: e.target.value })
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder="Enter your last name"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email Address
                     </label>
                     <input
-                      type={
-                        key === "email"
-                          ? "email"
-                          : key === "contact_no"
-                          ? "tel"
-                          : "text"
-                      }
-                      value={selectedAddress[key] || ""}
+                      type="email"
+                      value={profile.email}
+                      readOnly
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email cannot be changed
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Contact Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={profile.contact_no}
                       onChange={(e) =>
-                        setSelectedAddress({
-                          ...selectedAddress,
-                          [key]: e.target.value,
-                        })
+                        setProfile({ ...profile, contact_no: e.target.value })
                       }
-                      placeholder={`Enter ${label.toLowerCase()}`}
-                      required={required}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="Enter your contact number"
                     />
                   </div>
-                ))}
-                <button
-                  onClick={handleSaveChanges}
-                  className="w-full bg-green-500 p-3 rounded-lg text-white"
-                >
-                  {saving ? "Saving..." : "Save"}
-                </button>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={profile.city}
+                      onChange={(e) =>
+                        setProfile({ ...profile, city: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="Enter your city"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-3 px-4 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+                  >
+                    Save Profile Changes
+                  </button>
+                </form>
               </div>
-            )}
+            </div>
           </div>
-        </Dialog>
-      )}
+
+          {/* Addresses Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-6 py-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Your Addresses
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      Manage your delivery addresses
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleAddNew}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Add New Address
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {profile.address.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No addresses yet
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Add your first address to get started
+                    </p>
+                    <button
+                      onClick={handleAddNew}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+                    >
+                      Add Your First Address
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {profile.address.map((address) => (
+                      <div
+                        key={address.id}
+                        className={`relative p-6 border-2 rounded-xl transition-all duration-200 hover:shadow-lg ${
+                          address.default
+                            ? "border-green-200 bg-green-50"
+                            : "border-gray-200 bg-white hover:border-gray-300"
+                        }`}
+                      >
+                        {address.default && (
+                          <div className="absolute -top-2 -right-2">
+                            <span className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                              Default
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-900 text-sm">
+                                {address.address1}
+                              </p>
+                              {address.address2 && (
+                                <p className="text-gray-700 text-sm">
+                                  {address.address2}
+                                </p>
+                              )}
+                              <p className="text-gray-600 text-sm">
+                                {address.city}, {address.state} -{" "}
+                                {address.pincode}
+                              </p>
+                              <p className="text-gray-600 text-sm">
+                                {address.country}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-gray-200 pt-3">
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                              <div className="flex items-center gap-1">
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                                  />
+                                </svg>
+                                {address.contact_no}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                {address.email}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 pt-2">
+                            {!address.default && (
+                              <button
+                                onClick={() => setDefaultAddress(address.id)}
+                                className="flex-1 bg-blue-50 text-blue-600 font-medium py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+                              >
+                                Set as Default
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleEdit(address)}
+                              className="flex-1 bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Edit/Add Address Modal */}
+        {isEditOpen && (
+          <Dialog
+            open={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-6 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">
+                      {isNewAddress ? "Add New Address" : "Edit Address"}
+                    </h2>
+                    <p className="text-blue-100 mt-1">
+                      {isNewAddress
+                        ? "Fill in the details for your new address"
+                        : "Update your address information"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsEditOpen(false)}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6">
+                {selectedAddress && (
+                  <div className="space-y-6">
+                    {/* Address Fields Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        {
+                          key: "address1",
+                          label: "Address Line 1",
+                          required: true,
+                          colSpan: "md:col-span-2",
+                        },
+                        {
+                          key: "address2",
+                          label: "Address Line 2",
+                          required: false,
+                          colSpan: "md:col-span-2",
+                        },
+                        {
+                          key: "city",
+                          label: "City",
+                          required: true,
+                          colSpan: "",
+                        },
+                        {
+                          key: "district",
+                          label: "District",
+                          required: true,
+                          colSpan: "",
+                        },
+                        {
+                          key: "state",
+                          label: "State",
+                          required: true,
+                          colSpan: "",
+                        },
+                        {
+                          key: "country",
+                          label: "Country",
+                          required: true,
+                          colSpan: "",
+                        },
+                        {
+                          key: "pincode",
+                          label: "Pincode",
+                          required: true,
+                          colSpan: "",
+                        },
+                        {
+                          key: "contact_no",
+                          label: "Contact Number",
+                          required: true,
+                          colSpan: "",
+                        },
+                        {
+                          key: "email",
+                          label: "Email",
+                          required: true,
+                          colSpan: "md:col-span-2",
+                        },
+                      ].map(({ key, label, required, colSpan }) => (
+                        <div key={key} className={colSpan}>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            {label}
+                            {required && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </label>
+                          <input
+                            type={
+                              key === "email"
+                                ? "email"
+                                : key === "contact_no"
+                                ? "tel"
+                                : "text"
+                            }
+                            value={selectedAddress[key] || ""}
+                            onChange={(e) =>
+                              setSelectedAddress({
+                                ...selectedAddress,
+                                [key]: e.target.value,
+                              })
+                            }
+                            placeholder={`Enter ${label.toLowerCase()}`}
+                            required={required}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Default Address Checkbox */}
+                    <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                      <input
+                        type="checkbox"
+                        id="defaultAddress"
+                        checked={selectedAddress.default || false}
+                        onChange={(e) =>
+                          setSelectedAddress({
+                            ...selectedAddress,
+                            default: e.target.checked,
+                          })
+                        }
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="defaultAddress"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Set as default address
+                      </label>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        onClick={() => setIsEditOpen(false)}
+                        className="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveChanges}
+                        disabled={saving}
+                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                      >
+                        {saving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            {isNewAddress ? "Add Address" : "Update Address"}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Dialog>
+        )}
+      </div>
     </div>
   );
 }
