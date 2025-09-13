@@ -3,6 +3,7 @@
 import { forwardRef } from "react";
 import { clsx } from "clsx";
 import Link from "next/link";
+import Image from "next/image";
 
 const Card = forwardRef(function Card(
   {
@@ -72,10 +73,12 @@ const CardImage = forwardRef(function CardImage(
 ) {
   return (
     <div className={clsx("relative overflow-hidden", aspectRatio)}>
-      <img
+      <Image
         ref={ref}
         src={src}
         alt={alt}
+        width={400}
+        height={300}
         className={clsx(
           "h-full w-full object-cover transition-transform duration-500 group-hover:scale-110",
           className
@@ -143,7 +146,14 @@ const CardPrice = forwardRef(function CardPrice(
 });
 
 const ProductCard = forwardRef(function ProductCard(
-  { product, className, showAddToCart = true, onAddToCart, ...props },
+  {
+    product,
+    className,
+    showAddToCart = true,
+    onAddToCart,
+    isAddingToCart = false,
+    ...props
+  },
   ref
 ) {
   const discount =
@@ -301,57 +311,56 @@ const ProductCard = forwardRef(function ProductCard(
               e.stopPropagation();
               try {
                 await onAddToCart?.(product);
-                // Show success feedback
-                const button = e.currentTarget;
-                const originalText = button.innerHTML;
-                button.innerHTML = `
-                  <span class="flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Added!
-                  </span>
-                `;
-                button.classList.add("bg-green-500", "hover:bg-green-600");
-                button.classList.remove(
-                  "from-orange-500",
-                  "to-yellow-500",
-                  "hover:from-orange-600",
-                  "hover:to-yellow-600"
-                );
-
-                // Reset after 2 seconds
-                setTimeout(() => {
-                  button.innerHTML = originalText;
-                  button.classList.remove("bg-green-500", "hover:bg-green-600");
-                  button.classList.add(
-                    "from-orange-500",
-                    "to-yellow-500",
-                    "hover:from-orange-600",
-                    "hover:to-yellow-600"
-                  );
-                }, 2000);
+                // The toast notification will be handled by the cart context
               } catch (error) {
                 console.error("Error adding to cart:", error);
               }
             }}
-            className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+            className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            disabled={isAddingToCart}
           >
             <span className="flex items-center justify-center gap-2">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
-                />
-              </svg>
-              Add to Cart
+              {isAddingToCart ? (
+                <>
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                    />
+                  </svg>
+                  Add to Cart
+                </>
+              )}
             </span>
           </button>
         )}

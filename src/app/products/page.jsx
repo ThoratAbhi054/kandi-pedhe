@@ -19,6 +19,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { API_URL } from "../../utils/constant";
 import { ProductCard } from "../../components/card";
+import { useCart } from "../../context/CartContext";
 import Link from "next/link";
 
 function classNames(...classes) {
@@ -39,6 +40,8 @@ export default function ProductsPage() {
     is_discount: false,
     discounted_price: "",
   });
+
+  const { addToCart, isAddingToCart } = useCart();
 
   // Fetch Products
   const getProducts = async () => {
@@ -398,10 +401,8 @@ export default function ProductsPage() {
                 >
                   <ProductCard
                     product={product}
-                    onAddToCart={(product) => {
-                      // Add to cart logic here
-                      console.log("Added to cart:", product);
-                    }}
+                    onAddToCart={addToCart}
+                    isAddingToCart={isAddingToCart}
                   />
                 </div>
               ))}

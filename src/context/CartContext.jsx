@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { API_URL } from "../utils/constant";
 import { AuthActions } from "../app/auth/utils";
+import { useToast } from "./ToastContext";
 
 const CartContext = createContext(null);
 
@@ -13,6 +14,10 @@ export const CartProvider = ({ children }) => {
 
   const [cart, setCart] = useState([]);
   const [cartCount, setCartCount] = useState(0);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  // We'll use a ref to store the toast function to avoid circular dependency
+  const [toastFunctions, setToastFunctions] = useState(null);
 
   // Fetch cart items from API
   const fetchCart = async () => {
@@ -33,7 +38,10 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const addToCart = async (product) => {
+  const addToCart = async (product, showToast = true) => {
+    if (isAddingToCart) return; // Prevent multiple simultaneous additions
+
+    setIsAddingToCart(true);
     try {
       const payload = {
         content_type: "product",
@@ -54,9 +62,27 @@ export const CartProvider = ({ children }) => {
       }
 
       await response.json();
-      fetchCart(); // Re-fetch cart after adding an item
+      await fetchCart(); // Re-fetch cart after adding an item
+
+      // Show success toast if requested
+      if (showToast && toastFunctions) {
+        toastFunctions.showSuccess(
+          `${product.title} has been added to your cart.`,
+          "Added to Cart!",
+          3000
+        );
+      }
     } catch (error) {
       console.error("Error adding product to cart:", error);
+      if (showToast && toastFunctions) {
+        toastFunctions.showError(
+          `Could not add ${product.title} to cart. Please try again.`,
+          "Failed to Add",
+          4000
+        );
+      }
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -65,7 +91,16 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   return (
-    <CartContext.Provider value={{ cart, cartCount, addToCart, fetchCart }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        cartCount,
+        addToCart,
+        fetchCart,
+        isAddingToCart,
+        setToastFunctions,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

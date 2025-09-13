@@ -44,6 +44,7 @@ function classNames(...classes) {
 
 function Homepage() {
   const [open, setOpen] = useState(false);
+  const { addToCart, isAddingToCart } = useCart();
   const [categories, setCategories] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [products, setProducts] = useState([]);
@@ -52,7 +53,6 @@ function Homepage() {
   const videoRefs = useRef({});
 
   const { getToken, logout, removeTokens } = AuthActions();
-  const { addToCart } = useCart();
 
   const handleLogout = () => {
     logout()
@@ -323,7 +323,11 @@ function Homepage() {
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <ProductCard product={product} onAddToCart={addToCart} />
+                  <ProductCard
+                    product={product}
+                    onAddToCart={addToCart}
+                    isAddingToCart={isAddingToCart}
+                  />
                 </div>
               ))}
             </div>
