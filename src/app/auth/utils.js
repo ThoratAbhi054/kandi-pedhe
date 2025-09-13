@@ -35,8 +35,24 @@ const register = (email, username, password) => {
   return api.post({ email, username, password }, "/iam/auth/signup/");
 };
 
-const login = (username, password) => {
-  return api.post({ username, password }, "/iam/auth/login/");
+const login = async (username, password) => {
+  try {
+    const response = await api
+      .post({ username, password }, "/iam/auth/login/")
+      .json();
+    return response;
+  } catch (error) {
+    // If it's a wretch error with response data, return the data
+    if (error.json) {
+      try {
+        const errorData = await error.json();
+        return errorData;
+      } catch (jsonErr) {
+        throw error;
+      }
+    }
+    throw error;
+  }
 };
 
 const logout = () => {
