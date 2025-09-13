@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 const api = wretch(API_URL).accept("application/json");
 
 export default function Example() {
-  const { getToken } = AuthActions();
+  const { getToken, signOut } = AuthActions();
   const accessToken = getToken("access");
 
   const [cart, setCart] = useState([]);
@@ -83,7 +83,11 @@ export default function Example() {
       }
 
       const data = await res.json();
-      setCart(data.results);
+      console.log("Cart API Response:", data);
+      // Handle both array response and paginated response
+      const cartData = Array.isArray(data) ? data : data.results || [];
+      console.log("Processed Cart Data:", cartData);
+      setCart(cartData);
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
@@ -120,6 +124,15 @@ export default function Example() {
     console.log("Processing Payment for Cart:", cart);
 
     try {
+      // ✅ Check if Razorpay Key is configured
+      if (!RAZORPAY_KEY_ID) {
+        alert(
+          "Razorpay configuration missing! Please check your environment variables."
+        );
+        console.error("RAZORPAY_KEY_ID is undefined");
+        return;
+      }
+
       // ✅ Ensure Razorpay SDK is Loaded
       if (!window.Razorpay) {
         alert("Razorpay SDK not loaded! Please try again.");
@@ -127,8 +140,9 @@ export default function Example() {
       }
 
       // ✅ Ensure Order ID Exists
-      if (!cart.order_id) {
+      if (!cart || !cart.order_id) {
         alert("Order ID is missing! Please try again.");
+        console.error("Cart or order_id is missing:", cart);
         return;
       }
 
@@ -255,6 +269,11 @@ export default function Example() {
     }
   };
 
+  // Debug logging
+  console.log("Render - Cart state:", cart);
+  console.log("Render - Cart length:", cart?.length);
+  console.log("Render - Loading state:", loading);
+
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-2xl px-4 pb-24 pt-16 sm:px-6 lg:max-w-7xl lg:px-8">
@@ -264,8 +283,13 @@ export default function Example() {
 
         {loading ? (
           <p>Loading...</p>
-        ) : cart.length === 0 ? (
-          <p className="mt-6 text-lg text-gray-500">Your cart is empty.</p>
+        ) : cart?.length === 0 ? (
+          <div className="mt-6">
+            <p className="text-lg text-gray-500">Your cart is empty.</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Debug: Cart array length = {cart?.length}
+            </p>
+          </div>
         ) : (
           <form className="mt-12 lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
             {/* Cart Items */}
@@ -274,7 +298,7 @@ export default function Example() {
                 role="list"
                 className="divide-y divide-gray-200 border-b border-t border-gray-200"
               >
-                {cart.map((cartItem) =>
+                {cart?.map((cartItem) =>
                   cartItem.items.map((item) => (
                     <li key={item.id} className="flex py-6 sm:py-10">
                       <div className="shrink-0">
@@ -383,17 +407,22 @@ export default function Example() {
                   Order Total
                 </dt>
                 <dd className="text-base font-medium text-gray-900">
-                  ₹ {cart[0]?.discounted_amount || 0}
+                  ₹{" "}
+                  {cart && cart.length > 0
+                    ? cart[0]?.discounted_amount || 0
+                    : 0}
                 </dd>
               </div>
 
               <div className="mt-6">
                 <button
                   type="button"
-                  onClick={() => checkout(cart[0]?.id)}
-                  disabled={cart.length === 0 || !selectedAddress}
+                  onClick={() =>
+                    checkout(cart && cart.length > 0 ? cart[0]?.id : null)
+                  }
+                  disabled={!cart || cart.length === 0 || !selectedAddress}
                   className={`w-full max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none ${
-                    cart.length === 0 || !selectedAddress
+                    !cart || cart.length === 0 || !selectedAddress
                       ? "opacity-50 cursor-not-allowed"
                       : ""
                   }`}
