@@ -6,6 +6,7 @@ import { API_URL } from "../../utils/constant";
 import { AuthActions } from "../../app/auth/utils";
 import { useSupabase } from "../../context/SupabaseContext.jsx";
 import { Dialog } from "@headlessui/react";
+import Image from "next/image";
 
 export default function CompleteProfilePage() {
   const { signOut } = AuthActions();
@@ -204,9 +205,11 @@ export default function CompleteProfilePage() {
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-8 text-center">
                 <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
                   {profile.avatar ? (
-                    <img
+                    <Image
                       src={profile.avatar}
                       alt="Profile"
+                      width={80}
+                      height={80}
                       className="w-20 h-20 rounded-full object-cover"
                     />
                   ) : (

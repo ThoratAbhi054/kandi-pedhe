@@ -1,6 +1,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css"; // Import the necessary styles
 import "swiper/css/free-mode";
+import Image from "next/image";
 
 export const CategorySlider = ({ categories }) => {
   return (
@@ -23,12 +24,13 @@ export const CategorySlider = ({ categories }) => {
             <a href={category.href} className="group block">
               <div
                 aria-hidden="true"
-                className="w-[300px] h-[400px] overflow-hidden rounded-lg group-hover:opacity-75"
+                className="w-[300px] h-[400px] overflow-hidden rounded-lg group-hover:opacity-75 relative"
               >
-                <img
+                <Image
                   alt={category.name}
                   src={category.thumbnail}
-                  className="h-full w-full object-cover object-center"
+                  fill
+                  className="object-cover object-center"
                 />
               </div>
               <h3 className="mt-4 text-base font-semibold text-gray-900">

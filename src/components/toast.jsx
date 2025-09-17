@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -25,12 +25,12 @@ const Toast = ({ toast, onClose }) => {
       clearTimeout(timer);
       clearTimeout(autoCloseTimer);
     };
-  }, [toast.duration]);
+  }, [toast.duration, handleClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsVisible(false);
     setTimeout(() => onClose(toast.id), 300); // Wait for animation to complete
-  };
+  }, [onClose, toast.id]);
 
   const getIcon = () => {
     switch (toast.type) {

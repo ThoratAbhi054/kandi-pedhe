@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const posts = [
   {
     id: 1,
@@ -36,9 +38,10 @@ export default function Example() {
               key={post.id}
               className="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pb-8 pt-80 sm:pt-48 lg:pt-80"
             >
-              <img
+              <Image
                 alt=""
                 src={post.imageUrl}
+                fill
                 className="absolute inset-0 -z-10 size-full object-cover"
               />
               <div className="absolute inset-0 -z-10 bg-gradient-to-t from-gray-900 via-gray-900/40" />
@@ -56,9 +59,11 @@ export default function Example() {
                     <circle r={1} cx={1} cy={1} />
                   </svg>
                   <div className="flex gap-x-2.5">
-                    <img
+                    <Image
                       alt=""
                       src={post.author.imageUrl}
+                      width={24}
+                      height={24}
                       className="size-6 flex-none rounded-full bg-white/10"
                     />
                     {post.author.name}

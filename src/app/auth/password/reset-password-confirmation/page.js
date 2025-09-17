@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { useSupabase } from "../../../../context/SupabaseContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-const ResetPasswordConfirmation = () => {
+const ResetPasswordForm = () => {
   const {
     register,
     handleSubmit,
@@ -183,6 +183,23 @@ const ResetPasswordConfirmation = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const ResetPasswordConfirmation = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+            <p className="mt-6 text-lg text-gray-600 font-medium">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 };
 

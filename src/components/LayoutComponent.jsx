@@ -1,5 +1,5 @@
 "use client";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogBackdrop,
@@ -29,6 +29,8 @@ import { AuthActions } from "../app/auth/utils.js";
 import { useCart } from "../context/CartContext.jsx";
 import { useSupabase } from "../context/SupabaseContext.jsx";
 import { FaUserCircle } from "react-icons/fa"; // ✅ Import Profile Icon
+import Head from "next/head";
+import Image from "next/image";
 
 const navigation = {
   pages: [{ id: "1", name: "Stores", href: "#" }],
@@ -49,7 +51,7 @@ const LayoutComponent = ({ children }) => {
   const { session, signOut: supabaseSignOut } = useSupabase();
 
   const isAuthenticated = !!session?.access_token;
-  const getCategories = async () => {
+  const getCategories = useCallback(async () => {
     try {
       const headers = {
         "Content-Type": "application/json",
@@ -77,16 +79,22 @@ const LayoutComponent = ({ children }) => {
     } catch (err) {
       console.error("Error fetching data:", err);
     }
-  };
+  }, [isAuthenticated, session?.access_token, supabaseSignOut]);
 
   useEffect(() => {
     getCategories();
-  }, []);
+  }, [getCategories]);
   const pathName = usePathname();
 
   return (
     <html lang="en" className="h-full bg-white">
-      <head className="h-full"></head>
+      <Head>
+        <title>Ingale Pedha House - Authentic Indian Sweets</title>
+        <meta
+          name="description"
+          content="Experience the rich tradition of Indian sweets with our authentic recipes passed down through generations."
+        />
+      </Head>
       <body>
         <div className="flex flex-col min-h-screen">
           {pathName === "/login" || pathName === "/signup" ? (
@@ -235,9 +243,11 @@ const LayoutComponent = ({ children }) => {
                         <Link href="/" className="group">
                           <span className="sr-only">Ingale Pedha House</span>
                           <div className="flex items-center space-x-3">
-                            <img
+                            <Image
                               alt="Ingale Pedha House Logo"
                               src="/images/IngaleLogo.png"
+                              width={48}
+                              height={48}
                               className="h-12 w-auto transition-transform duration-200 group-hover:scale-105"
                             />
                             <div className="hidden sm:block">
@@ -378,9 +388,11 @@ const LayoutComponent = ({ children }) => {
                 {/* Company Info */}
                 <div className="col-span-1 md:col-span-2">
                   <div className="flex items-center space-x-3 mb-4">
-                    <img
+                    <Image
                       src="/images/IngaleLogo.png"
                       alt="Ingale Pedha House"
+                      width={40}
+                      height={40}
                       className="h-10 w-auto"
                     />
                     <div>
