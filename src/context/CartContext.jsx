@@ -1,15 +1,21 @@
 "use client"; // Important for Next.js App Router
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { API_URL } from "../utils/constant";
-import { AuthActions } from "../app/auth/utils";
+import { useSupabase } from "./SupabaseContext";
 import { useToast } from "./ToastContext";
 
 const CartContext = createContext(null);
 
 export const CartProvider = ({ children }) => {
-  const { getToken } = AuthActions();
-  const accessToken = getToken("access");
+  const { session } = useSupabase();
+  const accessToken = session?.access_token;
   console.log("accessToken cart ==>", accessToken);
 
   const [cart, setCart] = useState([]);
@@ -20,7 +26,9 @@ export const CartProvider = ({ children }) => {
   const [toastFunctions, setToastFunctions] = useState(null);
 
   // Fetch cart items from API
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
+    if (!accessToken) return;
+
     try {
       const res = await fetch(`${API_URL}/cms/carts/`, {
         headers: {
@@ -36,7 +44,7 @@ export const CartProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching cart:", err);
     }
-  };
+  }, [accessToken]);
 
   const addToCart = async (product, showToast = true) => {
     if (isAddingToCart) return; // Prevent multiple simultaneous additions
@@ -88,7 +96,7 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     fetchCart();
-  }, []);
+  }, [fetchCart]);
 
   return (
     <CartContext.Provider

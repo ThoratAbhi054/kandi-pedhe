@@ -27,6 +27,7 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { AuthActions } from "../app/auth/utils.js";
 import { useCart } from "../context/CartContext.jsx";
+import { useSupabase } from "../context/SupabaseContext.jsx";
 import { FaUserCircle } from "react-icons/fa"; // ✅ Import Profile Icon
 
 const navigation = {
@@ -43,22 +44,30 @@ const LayoutComponent = ({ children }) => {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const { getToken, logout, removeTokens } = AuthActions();
+  const { signOut } = AuthActions();
   const { cartCount } = useCart(); // ✅ Safely use Context API
+  const { session, signOut: supabaseSignOut } = useSupabase();
 
-  const token = getToken("access");
+  const isAuthenticated = !!session?.access_token;
   const getCategories = async () => {
     try {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      // Add authorization header if user is authenticated
+      if (isAuthenticated && session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const res = await fetch(`${API_URL}/cms/categories/`, {
         redirect: "follow",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (!res.ok) {
         if (res.status === 401) {
-          await signOut();
+          await supabaseSignOut();
         }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -152,7 +161,7 @@ const LayoutComponent = ({ children }) => {
 
                     {/* User Actions */}
                     <div className="border-t border-gray-200 px-4 py-6">
-                      {!token ? (
+                      {!isAuthenticated ? (
                         <div className="space-y-3">
                           <Link
                             href="/login"
@@ -180,9 +189,8 @@ const LayoutComponent = ({ children }) => {
                             Profile
                           </Link>
                           <button
-                            onClick={() => {
-                              logout();
-                              removeTokens();
+                            onClick={async () => {
+                              await supabaseSignOut();
                               router.push("/");
                               setMobileMenuOpen(false);
                             }}
@@ -301,7 +309,7 @@ const LayoutComponent = ({ children }) => {
 
                         {/* User Actions */}
                         <div className="flex items-center space-x-2">
-                          {!token ? (
+                          {!isAuthenticated ? (
                             <>
                               <Link
                                 href="/login"
@@ -327,9 +335,8 @@ const LayoutComponent = ({ children }) => {
                                 <span className="sr-only">Profile</span>
                               </button>
                               <button
-                                onClick={() => {
-                                  logout();
-                                  removeTokens();
+                                onClick={async () => {
+                                  await supabaseSignOut();
                                   router.push("/");
                                 }}
                                 className="btn btn-ghost btn-sm text-red-600 hover:text-red-700 hover:bg-red-50"

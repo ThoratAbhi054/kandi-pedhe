@@ -4,12 +4,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "../../utils/constant";
 import { AuthActions } from "../../app/auth/utils";
+import { useSupabase } from "../../context/SupabaseContext.jsx";
 import { Dialog } from "@headlessui/react";
 
 export default function CompleteProfilePage() {
-  const { getToken } = AuthActions();
-  const accessToken = getToken("access");
+  const { signOut } = AuthActions();
+  const { session, signOut: supabaseSignOut } = useSupabase();
   const router = useRouter();
+
+  const accessToken = session?.access_token;
 
   const [profile, setProfile] = useState({
     id: "",
@@ -31,6 +34,11 @@ export default function CompleteProfilePage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!accessToken) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch(`${API_URL}/iam/users/me/`, {
           headers: {
@@ -55,10 +63,11 @@ export default function CompleteProfilePage() {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching profile:", error);
+        setLoading(false);
       }
     };
     fetchProfile();
-  }, []);
+  }, [accessToken]);
 
   const handleEdit = (address) => {
     setSelectedAddress({ ...address });

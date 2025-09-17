@@ -25,8 +25,7 @@ import { Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { signOut } from "next-auth/react";
-import { AuthActions } from "../../../app/auth/utils";
+import { useSupabase } from "../../../context/SupabaseContext";
 import { useCart } from "../../../context/CartContext"; // ✅ Import Cart Context
 
 const license = {
@@ -77,14 +76,14 @@ function classNames(...classes) {
 }
 
 export default function Example(params) {
-  const { getToken, logout, removeTokens } = AuthActions();
+  const { session, signOut } = useSupabase();
   const router = useRouter();
   const id = params?.params?.productID;
   const searchParams = useSearchParams();
   const [products, setProducts] = useState({});
   const [reviews, setReviews] = useState([]);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const accessToken = getToken("access");
+  const accessToken = session?.access_token;
   const { addToCart } = useCart(); // ✅ Use `addToCart`
   console.log("license  ===>", products);
   const [selectedImage, setSelectedImage] = useState(null);

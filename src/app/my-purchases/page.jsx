@@ -4,20 +4,27 @@ import wretch from "wretch";
 import { useState, useEffect } from "react";
 import { CheckIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { AuthActions } from "../auth/utils";
+import { useSupabase } from "../../context/SupabaseContext.jsx";
 import { API_URL } from "../../utils/constant";
 import { useRouter } from "next/navigation";
 
 const api = wretch(API_URL).accept("application/json");
 
 export default function MyPurchases() {
-  const { getToken } = AuthActions();
-  const accessToken = getToken("access");
-
-  const [purchases, setPurchases] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { signOut } = AuthActions();
+  const { session, signOut: supabaseSignOut } = useSupabase();
   const router = useRouter();
 
+  const accessToken = session?.access_token;
+  const [purchases, setPurchases] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const fetchPurchases = async () => {
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const url = new URL(`${API_URL}/cms/carts/`);
       url.searchParams.append("status", "CHECKOUT"); // ✅ Fetch only checkout carts
@@ -29,7 +36,12 @@ export default function MyPurchases() {
         },
       });
 
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 401) {
+          await supabaseSignOut();
+        }
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
 
       const data = await res.json();
       console.log("Purchases API Response:", data);
@@ -47,7 +59,7 @@ export default function MyPurchases() {
 
   useEffect(() => {
     fetchPurchases();
-  }, []);
+  }, [accessToken]);
 
   return (
     <div className="bg-white">
