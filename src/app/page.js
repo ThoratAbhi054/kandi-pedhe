@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef, useCallback } from "react";
 
 import {
   Dialog,
@@ -28,6 +28,7 @@ import { ProductCard, CategoryCard } from "../components/card";
 import Link from "next/link";
 import { AuthActions } from "../app/auth/utils.js";
 import { useCart } from "../context/CartContext.jsx";
+import { useSupabase } from "../context/SupabaseContext.jsx";
 import Footer from "../components/footer.jsx";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules"; // ✅ Correct Import
@@ -52,19 +53,17 @@ function Homepage() {
   const swiperRef = useRef(null);
   const videoRefs = useRef({});
 
-  const { getToken, logout, removeTokens } = AuthActions();
+  const { signOut } = AuthActions();
+  const { session, signOut: supabaseSignOut } = useSupabase();
 
-  const handleLogout = () => {
-    logout()
-      .res(() => {
-        removeTokens();
-
-        router.push("/");
-      })
-      .catch(() => {
-        removeTokens();
-        router.push("/");
-      });
+  const handleLogout = async () => {
+    try {
+      await supabaseSignOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      router.push("/");
+    }
   };
 
   const fetchSliders = async () => {
@@ -78,19 +77,25 @@ function Homepage() {
     }
   };
 
-  const token = getToken("access");
-  const getCategories = async () => {
+  const getCategories = useCallback(async () => {
     try {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      // Add authorization header if user is authenticated
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const res = await fetch(`${API_URL}/cms/categories/`, {
         redirect: "follow",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (!res.ok) {
         if (res.status === 401) {
-          await signOut();
+          await supabaseSignOut();
         }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -100,20 +105,27 @@ function Homepage() {
     } catch (err) {
       console.error("Error fetching data:", err);
     }
-  };
+  }, [session?.access_token, supabaseSignOut]);
 
-  const getFavouriteProducts = async () => {
+  const getFavouriteProducts = useCallback(async () => {
     try {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      // Add authorization header if user is authenticated
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const res = await fetch(`${API_URL}/cms/products/?is_favourite=true`, {
         redirect: "follow",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (!res.ok) {
         if (res.status === 401) {
-          await signOut();
+          await supabaseSignOut();
         }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -123,20 +135,27 @@ function Homepage() {
     } catch (err) {
       console.error("Error fetching data:", err);
     }
-  };
+  }, [session?.access_token, supabaseSignOut]);
 
-  const getProducts = async () => {
+  const getProducts = useCallback(async () => {
     try {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      // Add authorization header if user is authenticated
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const res = await fetch(`${API_URL}/cms/products/`, {
         redirect: "follow",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (!res.ok) {
         if (res.status === 401) {
-          await signOut();
+          await supabaseSignOut();
         }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -146,14 +165,14 @@ function Homepage() {
     } catch (err) {
       console.error("Error fetching data:", err);
     }
-  };
+  }, [session?.access_token, supabaseSignOut]);
 
   useEffect(() => {
     getCategories();
     getFavouriteProducts();
     getProducts();
     fetchSliders();
-  }, []);
+  }, [getCategories, getFavouriteProducts, getProducts]);
 
   const handleSlideChange = (swiper) => {
     const currentSlide = sliders[swiper.activeIndex];

@@ -1,91 +1,127 @@
-import wretch from "wretch";
-import Cookies from "js-cookie";
-import { API_URL } from "../../utils/constant";
+import { supabase } from "../../utils/supabase";
 
-// Base API setup for making HTTP requests
-const api = wretch(API_URL).accept("application/json");
-
-/**
- * Stores a token in cookies.
- * @param {string} token - The token to be stored.
- * @param {"access" | "refresh"} type - The type of the token (access or refresh).
- */
-const storeToken = (token, type) => {
-  Cookies.set(`${type}Token`, token); // Append "Token" to match retrieval
-};
-
-/**
- * Retrieves a token from cookies.
- * @param {"access" | "refresh"} type - The type of the token to retrieve (access or refresh).
- * @returns {string | undefined} The token, if found.
- */
-const getToken = (type) => {
-  return Cookies.get(`${type}Token`); // Ensure the name matches exactly
-};
-
-/**
- * Removes both access and refresh tokens from cookies.
- */
-const removeTokens = () => {
-  Cookies.remove("accessToken");
-  Cookies.remove("refreshToken");
-};
-
-const register = (email, username, password) => {
-  return api.post({ email, username, password }, "/iam/auth/signup/");
-};
-
-const login = async (username, password) => {
+// Authentication Functions (Supabase only)
+const signUp = async (email, password, options = {}) => {
   try {
-    const response = await api
-      .post({ username, password }, "/iam/auth/login/")
-      .json();
-    return response;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: options.metadata || {},
+      },
+    });
+    return { data, error };
   } catch (error) {
-    // If it's a wretch error with response data, return the data
-    if (error.json) {
-      try {
-        const errorData = await error.json();
-        return errorData;
-      } catch (jsonErr) {
-        throw error;
-      }
-    }
-    throw error;
+    console.error("Signup error:", error);
+    return { data: null, error };
   }
 };
 
-const logout = () => {
-  const refreshToken = getToken("refresh");
-  return api.post({ refresh: refreshToken }, "/iam/auth/logout/");
+const signIn = async (email, password) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { data, error };
+  } catch (error) {
+    console.error("Signin error:", error);
+    return { data: null, error };
+  }
 };
 
-const handleJWTRefresh = () => {
-  const refreshToken = getToken("refresh");
-  return api.post({ refresh: refreshToken }, "/auth/login/refresh/");
+const signOut = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    // Redirect to login page after successful signout
+    if (!error && typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+
+    return { error };
+  } catch (error) {
+    console.error("Signout error:", error);
+    return { error };
+  }
 };
 
-const resetPassword = (email) => {
-  return api.post({ email }, "/auth/users/reset_password/");
+const getSession = async () => {
+  try {
+    // Check if Supabase is configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!supabaseUrl || supabaseUrl.includes("dummy")) {
+      return { session: null, error: null };
+    }
+
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+    return { session, error };
+  } catch (error) {
+    console.error("Get session error:", error);
+    return { session: null, error };
+  }
 };
 
-const resetPasswordConfirm = (new_password, re_new_password, token, uid) => {
-  return api.post(
-    { uid, token, new_password, re_new_password },
-    "/auth/users/reset_password_confirm/"
-  );
+const getUser = async () => {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    return { user, error };
+  } catch (error) {
+    console.error("Get user error:", error);
+    return { user: null, error };
+  }
+};
+
+const resetPassword = async (email) => {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/password/reset-password-confirmation`,
+    });
+    return { data, error };
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return { data: null, error };
+  }
+};
+
+const updatePassword = async (password) => {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      password,
+    });
+    return { data, error };
+  } catch (error) {
+    console.error("Update password error:", error);
+    return { data: null, error };
+  }
+};
+
+// Helper function to check if user is authenticated
+const isAuthenticated = async () => {
+  const { session } = await getSession();
+  return {
+    isAuth: !!session?.access_token,
+    method: "supabase",
+    session,
+  };
 };
 
 export const AuthActions = () => {
   return {
-    login,
-    resetPasswordConfirm,
-    handleJWTRefresh,
-    register,
+    // Authentication functions (Supabase only)
+    signUp,
+    signIn,
+    signOut,
+    getSession,
+    getUser,
     resetPassword,
-    storeToken,
-    getToken,
-    logout,
-    removeTokens,
+    updatePassword,
+    isAuthenticated,
   };
 };

@@ -1,39 +1,18 @@
 import wretch from "wretch";
-import { AuthActions } from "@/app/auth/utils";
 import { API_URL } from "../../utils/constant";
 
-// Extract necessary functions from the AuthActions utility.
-const { handleJWTRefresh, storeToken, getToken } = AuthActions();
+// Create a simple fetcher that works with Supabase session-based auth
+// Note: This fetcher assumes the caller will handle authentication headers
+const api = (accessToken) => {
+  const baseApi = wretch(API_URL);
 
-const api = () => {
-  return (
-    wretch(API_URL)
-      // Initialize authentication with the access token.
-      .auth(`Bearer ${getToken("access")}`)
-      // Catch 401 errors to refresh the token and retry the request.
-      .catcher(401, async (error, request) => {
-        try {
-          // Attempt to refresh the JWT token.
-          const { access } = await handleJWTRefresh().json();
+  if (accessToken) {
+    return baseApi.auth(`Bearer ${accessToken}`);
+  }
 
-          // Store the new access token.
-          storeToken(access, "access");
-
-          // Replay the original request with the new access token.
-          return request
-            .auth(`Bearer ${access}`)
-            .fetch()
-            .unauthorized(() => {
-              window.location.replace("/");
-            })
-            .json();
-        } catch (err) {
-          window.location.replace("/");
-        }
-      })
-  );
+  return baseApi;
 };
 
-export const fetcher = (url) => {
-  return api().get(url).json();
+export const fetcher = (url, accessToken) => {
+  return api(accessToken).get(url).json();
 };

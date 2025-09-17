@@ -1,11 +1,10 @@
 "use client";
 
 import wretch from "wretch";
-import Cookies from "js-cookie";
 import { useState, useEffect, useCallback } from "react";
 import { ChevronDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon, ClockIcon, XMarkIcon } from "@heroicons/react/20/solid";
-import { AuthActions } from "../../app/auth/utils";
+import { useSupabase } from "../../context/SupabaseContext";
 import { API_URL, RAZORPAY_KEY_ID } from "../../utils/constant";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -13,8 +12,8 @@ import Image from "next/image";
 const api = wretch(API_URL).accept("application/json");
 
 export default function Example() {
-  const { getToken, signOut } = AuthActions();
-  const accessToken = getToken("access");
+  const { session, signOut: supabaseSignOut } = useSupabase();
+  const accessToken = session?.access_token;
 
   const [cart, setCart] = useState([]);
   const router = useRouter();
@@ -78,7 +77,7 @@ export default function Example() {
 
       if (!res.ok) {
         if (res.status === 401) {
-          await signOut();
+          await supabaseSignOut();
         }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -94,7 +93,7 @@ export default function Example() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken, signOut]);
+  }, [accessToken, supabaseSignOut]);
 
   const setDefaultAddress = async (addressId) => {
     try {
