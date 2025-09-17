@@ -12,11 +12,11 @@ frontend:
         - node --version
         - npm --version
         - echo "Installing dependencies..."
-        - npm ci
+        - yarn install --frozen-lockfile
     build:
       commands:
         - echo "Building the app..."
-        - npm run build
+        - yarn build
   artifacts:
     baseDirectory: .next
     files:
