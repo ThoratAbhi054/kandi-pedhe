@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ChevronDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon, ClockIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useSupabase } from "../../context/SupabaseContext";
-import { API_URL, RAZORPAY_KEY_ID } from "../../utils/constant";
+import { API_URL, RAZORPAY_KEY_ID, getImageUrl } from "../../utils/constant";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -382,7 +382,10 @@ export default function Example() {
                       <div className="flex-shrink-0 w-full sm:w-auto mb-4 sm:mb-0">
                         <Image
                           alt={item.data.title}
-                          src={item.data.thumbnail}
+                          src={
+                            getImageUrl(item.data.thumbnail) ||
+                            "/images/placeholder-product.jpg"
+                          }
                           width={128}
                           height={128}
                           className="w-full h-32 sm:h-24 sm:w-24 lg:h-32 lg:w-32 rounded-lg object-cover shadow-sm"

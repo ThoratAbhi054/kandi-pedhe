@@ -13,6 +13,11 @@ const nextConfig = {
         hostname: "api.ingalepedhas.in",
         pathname: "/cms/**",
       },
+      {
+        protocol: "https",
+        hostname: "api.ingalepedhas.in",
+        pathname: "/cms/**",
+      },
     ],
   },
 };

@@ -12,6 +12,11 @@ import {
 const Toast = ({ toast, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => onClose(toast.id), 300); // Wait for animation to complete
+  }, [onClose, toast.id]);
+
   useEffect(() => {
     // Trigger animation
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -26,11 +31,6 @@ const Toast = ({ toast, onClose }) => {
       clearTimeout(autoCloseTimer);
     };
   }, [toast.duration, handleClose]);
-
-  const handleClose = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => onClose(toast.id), 300); // Wait for animation to complete
-  }, [onClose, toast.id]);
 
   const getIcon = () => {
     switch (toast.type) {

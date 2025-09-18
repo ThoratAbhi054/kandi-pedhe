@@ -20,6 +20,7 @@ import {
   API_URL,
   RAZORPAY_KEY_ID,
   RAZORPAY_KEY_SECRET,
+  getImageUrl,
 } from "../../../utils/constant";
 import { Fragment } from "react";
 import { useRouter } from "next/navigation";
@@ -143,8 +144,8 @@ export default function Example(params) {
       const data = await res.json();
       setProducts(data);
       setSelectedImage(
-        data.thumbnail ||
-          (data.images?.length > 0 ? data.images[0].image : null)
+        getImageUrl(data.thumbnail) ||
+          (data.images?.length > 0 ? getImageUrl(data.images[0].image) : null)
       );
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -166,9 +167,9 @@ export default function Example(params) {
   useEffect(() => {
     // Default to thumbnail if available, otherwise pick first image
     if (products.thumbnail) {
-      setSelectedImage(products.thumbnail);
+      setSelectedImage(getImageUrl(products.thumbnail));
     } else if (products.images?.length > 0) {
-      setSelectedImage(products.images[0].image);
+      setSelectedImage(getImageUrl(products.images[0].image));
     }
   }, [products]);
 
@@ -194,14 +195,16 @@ export default function Example(params) {
                 {products.thumbnail && (
                   <Tab
                     key="thumbnail"
-                    onClick={() => setSelectedImage(products.thumbnail)} // ✅ Updates Main Image
+                    onClick={() =>
+                      setSelectedImage(getImageUrl(products.thumbnail))
+                    } // ✅ Updates Main Image
                     className="group relative flex h-20 w-20 sm:h-24 sm:w-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
                   >
                     <span className="sr-only">{products.title}</span>
                     <span className="absolute inset-0 overflow-hidden rounded-md">
                       <img
                         alt="Product Thumbnail"
-                        src={products.thumbnail}
+                        src={getImageUrl(products.thumbnail)}
                         className="h-full w-full object-cover object-center"
                       />
                     </span>
@@ -217,14 +220,14 @@ export default function Example(params) {
                   products.images.map((image) => (
                     <Tab
                       key={image.id}
-                      onClick={() => setSelectedImage(image.image)} // ✅ Updates Main Image
+                      onClick={() => setSelectedImage(getImageUrl(image.image))} // ✅ Updates Main Image
                       className="group relative flex h-20 w-20 sm:h-24 sm:w-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4"
                     >
                       <span className="sr-only">{products.title}</span>
                       <span className="absolute inset-0 overflow-hidden rounded-md">
                         <img
                           alt={image.alt_text || "Product image"}
-                          src={image.image}
+                          src={getImageUrl(image.image)}
                           className="h-full w-full object-cover object-center"
                         />
                       </span>
@@ -245,7 +248,9 @@ export default function Example(params) {
                 <img
                   alt="Selected Product Image"
                   src={
-                    selectedImage || products.thumbnail || "/fallback-image.jpg"
+                    selectedImage ||
+                    getImageUrl(products.thumbnail) ||
+                    "/fallback-image.jpg"
                   }
                   className="h-full w-full object-cover object-center sm:rounded-lg"
                 />
