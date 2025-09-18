@@ -7,6 +7,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { useRouter } from "next/navigation";
 import { API_URL } from "../utils/constant";
 import { useSupabase } from "./SupabaseContext";
 import { useToast } from "./ToastContext";
@@ -16,6 +17,7 @@ const CartContext = createContext(null);
 export const CartProvider = ({ children }) => {
   const { session } = useSupabase();
   const accessToken = session?.access_token;
+  const router = useRouter();
   console.log("accessToken cart ==>", accessToken);
 
   const [cart, setCart] = useState([]);
@@ -48,6 +50,21 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (product, showToast = true) => {
     if (isAddingToCart) return; // Prevent multiple simultaneous additions
+
+    // Check if user is authenticated
+    if (!accessToken) {
+      // Show info toast about needing to login
+      if (showToast && toastFunctions) {
+        toastFunctions.showError(
+          "Please log in to add items to your cart.",
+          "Login Required",
+          3000
+        );
+      }
+      // Redirect to login page
+      router.push("/login");
+      return;
+    }
 
     setIsAddingToCart(true);
     try {
