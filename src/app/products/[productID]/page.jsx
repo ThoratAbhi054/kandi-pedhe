@@ -83,12 +83,14 @@ export default function Example(params) {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState({});
   const [reviews, setReviews] = useState([]);
+  const [faqs, setFaqs] = useState([]);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const accessToken = session?.access_token;
   const { addToCart } = useCart(); // ✅ Use `addToCart`
   console.log("license  ===>", products);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true); // ✅ Loading state
+  const [faqsLoading, setFaqsLoading] = useState(true); // ✅ FAQs Loading state
 
   const getReview = async () => {
     try {
@@ -112,6 +114,34 @@ export default function Example(params) {
       setReviews(data?.results);
     } catch (err) {
       console.log("Error fetching data:", err);
+    }
+  };
+
+  const getFaqs = async () => {
+    setFaqsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/cms/faqs/`, {
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          await signOut();
+        }
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      // Handle both array response and paginated response
+      const faqData = Array.isArray(data) ? data : data.results || [];
+      setFaqs(faqData);
+    } catch (err) {
+      console.log("Error fetching FAQs:", err);
+      setFaqs([]); // Set empty array on error
+    } finally {
+      setFaqsLoading(false);
     }
   };
 
@@ -162,6 +192,7 @@ export default function Example(params) {
   useEffect(() => {
     getProduct();
     getReview();
+    getFaqs();
   }, []);
 
   useEffect(() => {
@@ -497,18 +528,52 @@ export default function Example(params) {
                 <TabPanel className="text-sm text-gray-500">
                   <h3 className="sr-only">Frequently Asked Questions</h3>
 
-                  <dl>
-                    {products.faqs?.map((faq) => (
-                      <Fragment key={faq.question}>
-                        <dt className="mt-10 font-medium text-gray-900">
-                          {faq.question}
-                        </dt>
-                        <dd className="prose prose-sm mt-2 max-w-none text-gray-500">
-                          <p>{faq.answer}</p>
-                        </dd>
-                      </Fragment>
-                    ))}
-                  </dl>
+                  {faqsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-600"></div>
+                      <span className="ml-3 text-sm text-gray-600">
+                        Loading FAQs...
+                      </span>
+                    </div>
+                  ) : faqs.length > 0 ? (
+                    <dl>
+                      {faqs.map((faq) => (
+                        <Fragment key={faq.id}>
+                          <dt className="mt-10 font-medium text-gray-900">
+                            {faq.question}
+                          </dt>
+                          <dd className="prose prose-sm mt-2 max-w-none text-gray-500">
+                            <p>{faq.answer}</p>
+                          </dd>
+                        </Fragment>
+                      ))}
+                    </dl>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="mx-auto h-12 w-12 text-gray-300 mb-4">
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          className="w-full h-full"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No FAQs Available
+                      </h3>
+                      <p className="text-gray-600">
+                        There are currently no frequently asked questions for
+                        this product.
+                      </p>
+                    </div>
+                  )}
                 </TabPanel>
 
                 <TabPanel className="pt-10">
