@@ -398,7 +398,7 @@ const LayoutComponent = ({ children }) => {
                     <div>
                       <h3 className="text-lg font-bold">Ingale Pedha House</h3>
                       <p className="text-sm text-gray-400">
-                        Authentic Indian Sweets
+                        Hotel Ingale Inn & Pedha House
                       </p>
                     </div>
                   </div>
@@ -407,6 +407,32 @@ const LayoutComponent = ({ children }) => {
                     authentic recipes passed down through generations. Fresh,
                     delicious, and made with love.
                   </p>
+
+                  {/* Store Location */}
+                  <div className="text-sm text-gray-400 mb-4">
+                    <div className="flex items-start space-x-2 mb-2">
+                      <span className="text-yellow-400">📍</span>
+                      <div>
+                        <p className="font-medium text-gray-300">Main Store:</p>
+                        <p>NH-4 (Pune-Bangalore Highway)</p>
+                        <p>Near Hotel Manasi Royal</p>
+                        <p>Khed Wadhe, Satara, Maharashtra 415003</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Map Pin: 44gy6h (NH 965D, Khed, Satara)
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="text-yellow-400">📍</span>
+                      <div>
+                        <p className="font-medium text-gray-300">
+                          Additional Outlet:
+                        </p>
+                        <p>Plot 10, Survey 84/9/10/11/12/13</p>
+                        <p>Satara Locality, Satara</p>
+                      </div>
+                    </div>
+                  </div>
                   <div className="flex space-x-4">
                     <a
                       href="#"
@@ -497,10 +523,37 @@ const LayoutComponent = ({ children }) => {
                     Contact
                   </h3>
                   <ul className="space-y-2 text-sm text-gray-400">
-                    <li>📞 +91 98765 43210</li>
+                    <li className="flex items-center space-x-2">
+                      <span>📞</span>
+                      <div>
+                        <a
+                          href="tel:+919922149922"
+                          className="hover:text-white transition-colors"
+                        >
+                          +91 99221 49922
+                        </a>
+                        <br />
+                        <a
+                          href="tel:+919689960404"
+                          className="hover:text-white transition-colors"
+                        >
+                          +91 96899 60404
+                        </a>
+                      </div>
+                    </li>
                     <li>✉️ info@ingalepedha.com</li>
-                    <li>📍 Mumbai, Maharashtra</li>
-                    <li>🕒 Mon-Sun: 9AM-9PM</li>
+                    <li className="flex items-start space-x-2">
+                      <span>📍</span>
+                      <span>Khed Wadhe, Satara, Maharashtra</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span>🕒</span>
+                      <span>Daily: 9:00 AM – 9:30 PM</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span>⭐</span>
+                      <span>4.0 ★ (167 reviews)</span>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -526,6 +579,8 @@ const LayoutComponent = ({ children }) => {
                     </Link>
                   </div>
                 </div>
+                {/* Developer Credits - Commented out per client request */}
+                {/* 
                 <div className="mt-4 text-center">
                   <p className="text-xs text-gray-500">
                     Developed with ❤️ by{" "}
@@ -548,6 +603,7 @@ const LayoutComponent = ({ children }) => {
                     </a>
                   </p>
                 </div>
+                */}
               </div>
             </div>
           </footer>
