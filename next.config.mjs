@@ -8,6 +8,11 @@ const nextConfig = {
         port: "8000",
         pathname: "/media/**",
       },
+      {
+        protocol: "http",
+        hostname: "api.ingalepedhas.in",
+        pathname: "/cms/**",
+      },
     ],
   },
 };
