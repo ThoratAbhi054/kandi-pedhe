@@ -4,6 +4,7 @@ import { forwardRef } from "react";
 import { clsx } from "clsx";
 import Link from "next/link";
 import Image from "next/image";
+import { useCart } from "../context/CartContext";
 
 const Card = forwardRef(function Card(
   {
@@ -146,16 +147,12 @@ const CardPrice = forwardRef(function CardPrice(
 });
 
 const ProductCard = forwardRef(function ProductCard(
-  {
-    product,
-    className,
-    showAddToCart = true,
-    onAddToCart,
-    isAddingToCart = false,
-    ...props
-  },
+  { product, className, showAddToCart = true, onAddToCart, ...props },
   ref
 ) {
+  const { isProductAddingToCart } = useCart();
+  const isAddingToCart = isProductAddingToCart(product.id);
+
   const discount =
     product.original_price && product.discounted_price
       ? Math.round(

@@ -45,7 +45,7 @@ function classNames(...classes) {
 
 function Homepage() {
   const [open, setOpen] = useState(false);
-  const { addToCart, isAddingToCart } = useCart();
+  const { addToCart } = useCart();
   const [categories, setCategories] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [products, setProducts] = useState([]);
@@ -342,11 +342,7 @@ function Homepage() {
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <ProductCard
-                    product={product}
-                    onAddToCart={addToCart}
-                    isAddingToCart={isAddingToCart}
-                  />
+                  <ProductCard product={product} onAddToCart={addToCart} />
                 </div>
               ))}
             </div>

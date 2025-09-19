@@ -22,7 +22,7 @@ export const CartProvider = ({ children }) => {
 
   const [cart, setCart] = useState([]);
   const [cartCount, setCartCount] = useState(0);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [addingToCartProducts, setAddingToCartProducts] = useState(new Set());
 
   // We'll use a ref to store the toast function to avoid circular dependency
   const [toastFunctions, setToastFunctions] = useState(null);
@@ -49,7 +49,7 @@ export const CartProvider = ({ children }) => {
   }, [accessToken]);
 
   const addToCart = async (product, showToast = true) => {
-    if (isAddingToCart) return; // Prevent multiple simultaneous additions
+    if (addingToCartProducts.has(product.id)) return; // Prevent multiple simultaneous additions for the same product
 
     // Check if user is authenticated
     if (!accessToken) {
@@ -66,7 +66,9 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
-    setIsAddingToCart(true);
+    // Add product to loading set
+    setAddingToCartProducts((prev) => new Set([...prev, product.id]));
+
     try {
       const payload = {
         content_type: "product",
@@ -107,8 +109,18 @@ export const CartProvider = ({ children }) => {
         );
       }
     } finally {
-      setIsAddingToCart(false);
+      // Remove product from loading set
+      setAddingToCartProducts((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(product.id);
+        return newSet;
+      });
     }
+  };
+
+  // Helper function to check if a specific product is being added to cart
+  const isProductAddingToCart = (productId) => {
+    return addingToCartProducts.has(productId);
   };
 
   useEffect(() => {
@@ -122,7 +134,7 @@ export const CartProvider = ({ children }) => {
         cartCount,
         addToCart,
         fetchCart,
-        isAddingToCart,
+        isProductAddingToCart,
         setToastFunctions,
       }}
     >

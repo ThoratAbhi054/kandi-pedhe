@@ -41,7 +41,7 @@ export default function ProductsPage() {
     discounted_price: "",
   });
 
-  const { addToCart, isAddingToCart } = useCart();
+  const { addToCart } = useCart();
 
   // Fetch Products
   const getProducts = async () => {
@@ -399,11 +399,7 @@ export default function ProductsPage() {
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <ProductCard
-                    product={product}
-                    onAddToCart={addToCart}
-                    isAddingToCart={isAddingToCart}
-                  />
+                  <ProductCard product={product} onAddToCart={addToCart} />
                 </div>
               ))}
             </div>
