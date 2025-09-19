@@ -154,6 +154,13 @@ const LayoutComponent = ({ children }) => {
                         >
                           Stores
                         </Link>
+                        <Link
+                          href="/about-us"
+                          className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-600 rounded-lg transition-colors duration-200"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          About Us
+                        </Link>
                         {categories?.results?.slice(0, 5).map((category) => (
                           <Link
                             key={category.id}
@@ -306,6 +313,12 @@ const LayoutComponent = ({ children }) => {
                           className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
                         >
                           Stores
+                        </Link>
+                        <Link
+                          href="/about-us"
+                          className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                        >
+                          About Us
                         </Link>
                       </div>
 
@@ -512,6 +525,14 @@ const LayoutComponent = ({ children }) => {
                         className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
                       >
                         My Orders
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/about-us"
+                        className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                      >
+                        About Us
                       </Link>
                     </li>
                   </ul>
