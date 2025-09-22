@@ -96,6 +96,15 @@ export default function CompleteProfilePage() {
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
+      // Client-side validation before submitting
+      const errors = validateAddress(selectedAddress);
+      if (Object.keys(errors).length > 0) {
+        const firstErrorKey = Object.keys(errors)[0];
+        alert(errors[firstErrorKey]);
+        setSaving(false);
+        return;
+      }
+
       const method = isNewAddress ? "POST" : "PATCH";
       const endpoint = isNewAddress
         ? `${API_URL}/iam/addresses/`
@@ -151,6 +160,43 @@ export default function CompleteProfilePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Basic client-side validation for address fields
+  const validateAddress = (addr) => {
+    const errors = {};
+    const alphaRegex = /^[A-Za-z\s]+$/;
+    const pincodeRegex = /^\d{6}$/; // Indian pincode: 6 digits
+    const phoneRegex = /^\d{10}$/; // 10-digit contact number
+
+    if (!addr.address1 || addr.address1.trim().length < 3) {
+      errors.address1 = "Address Line 1 must be at least 3 characters.";
+    }
+    if (!addr.city || !alphaRegex.test(addr.city)) {
+      errors.city = "City must contain letters and spaces only.";
+    }
+    if (!addr.district || !alphaRegex.test(addr.district)) {
+      errors.district = "District must contain letters and spaces only.";
+    }
+    if (!addr.state || !alphaRegex.test(addr.state)) {
+      errors.state = "State must contain letters and spaces only.";
+    }
+    if (!addr.country || !alphaRegex.test(addr.country)) {
+      errors.country = "Country must contain letters and spaces only.";
+    }
+    if (!addr.pincode || !pincodeRegex.test(addr.pincode)) {
+      errors.pincode = "Pincode must be exactly 6 digits.";
+    }
+    if (!addr.contact_no || !phoneRegex.test(addr.contact_no)) {
+      errors.contact_no = "Contact Number must be exactly 10 digits.";
+    }
+    if (
+      !addr.email ||
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(addr.email)
+    ) {
+      errors.email = "Please enter a valid email address.";
+    }
+    return errors;
   };
 
   const setDefaultAddress = async (addressId) => {
@@ -616,6 +662,42 @@ export default function CompleteProfilePage() {
                                 : key === "contact_no"
                                 ? "tel"
                                 : "text"
+                            }
+                            inputMode={
+                              key === "pincode" || key === "contact_no"
+                                ? "numeric"
+                                : undefined
+                            }
+                            pattern={
+                              key === "city" ||
+                              key === "district" ||
+                              key === "state" ||
+                              key === "country"
+                                ? "^[A-Za-z\\s]+$"
+                                : key === "pincode"
+                                ? "^\\d{6}$"
+                                : key === "contact_no"
+                                ? "^\\d{10}$"
+                                : undefined
+                            }
+                            maxLength={
+                              key === "pincode"
+                                ? 6
+                                : key === "contact_no"
+                                ? 10
+                                : undefined
+                            }
+                            title={
+                              key === "city" ||
+                              key === "district" ||
+                              key === "state" ||
+                              key === "country"
+                                ? "Only letters and spaces are allowed."
+                                : key === "pincode"
+                                ? "Enter a 6-digit pincode."
+                                : key === "contact_no"
+                                ? "Enter a 10-digit mobile number."
+                                : undefined
                             }
                             value={selectedAddress[key] || ""}
                             onChange={(e) =>

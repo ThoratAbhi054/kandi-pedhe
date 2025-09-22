@@ -89,7 +89,11 @@ const SignupPage = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 relative">
+          <Link
+            href="/"
+            aria-label="Go to homepage"
+            className="mx-auto h-20 w-20 relative block"
+          >
             <Image
               src="/images/IngaleLogo.png"
               alt="Ingale Pedha House"
@@ -97,7 +101,7 @@ const SignupPage = () => {
               className="object-contain"
               priority
             />
-          </div>
+          </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Create your account
           </h2>
@@ -140,6 +144,10 @@ const SignupPage = () => {
                       value: 2,
                       message: "First name must be at least 2 characters",
                     },
+                    pattern: {
+                      value: /^[A-Za-z\s]+$/,
+                      message: "First name can contain letters and spaces only",
+                    },
                   })}
                   className={`input ${errors.first_name ? "input-error" : ""}`}
                   placeholder="John"
@@ -165,6 +173,10 @@ const SignupPage = () => {
                     minLength: {
                       value: 2,
                       message: "Last name must be at least 2 characters",
+                    },
+                    pattern: {
+                      value: /^[A-Za-z\s]+$/,
+                      message: "Last name can contain letters and spaces only",
                     },
                   })}
                   className={`input ${errors.last_name ? "input-error" : ""}`}

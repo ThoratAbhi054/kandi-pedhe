@@ -154,6 +154,13 @@ const LayoutComponent = ({ children }) => {
                         >
                           Stores
                         </Link>
+                        <Link
+                          href="/my-purchases"
+                          className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-600 rounded-lg transition-colors duration-200"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          My Orders
+                        </Link>
                         {categories?.results?.slice(0, 5).map((category) => (
                           <Link
                             key={category.id}
@@ -288,7 +295,7 @@ const LayoutComponent = ({ children }) => {
                       </div> */}
 
                       {/* Desktop Navigation */}
-                      <div className="hidden lg:flex lg:items-center lg:space-x-8">
+                      <div className="hidden lg:flex lg:items-center lg:space-x-8 lg:ml-8">
                         <Link
                           href="/products"
                           className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
@@ -306,6 +313,12 @@ const LayoutComponent = ({ children }) => {
                           className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
                         >
                           Stores
+                        </Link>
+                        <Link
+                          href="/my-purchases"
+                          className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                        >
+                          My Orders
                         </Link>
                       </div>
 
@@ -550,10 +563,6 @@ const LayoutComponent = ({ children }) => {
                       <span>🕒</span>
                       <span>Daily: 9:00 AM – 9:30 PM</span>
                     </li>
-                    <li className="flex items-center space-x-2">
-                      <span>⭐</span>
-                      <span>4.0 ★ (167 reviews)</span>
-                    </li>
                   </ul>
                 </div>
               </div>
@@ -566,13 +575,13 @@ const LayoutComponent = ({ children }) => {
                   </p>
                   <div className="flex space-x-6 mt-4 md:mt-0">
                     <Link
-                      href="#"
+                      href="/privacy"
                       className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       Privacy Policy
                     </Link>
                     <Link
-                      href="#"
+                      href="/terms"
                       className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       Terms of Service

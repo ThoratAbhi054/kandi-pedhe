@@ -172,7 +172,7 @@ const ProductCard = forwardRef(function ProductCard(
       ref={ref}
       href={`/products/${product.id}`}
       className={clsx(
-        "group relative w-full max-w-sm bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden",
+        "group relative w-full max-w-sm bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden h-full flex flex-col",
         className
       )}
       {...props}
@@ -242,7 +242,7 @@ const ProductCard = forwardRef(function ProductCard(
       </div>
 
       {/* Product Content */}
-      <div className="p-5">
+      <div className="p-5 flex flex-col flex-1">
         {/* Product Title */}
         <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 mb-2 line-clamp-2">
           {product.title}
@@ -300,67 +300,70 @@ const ProductCard = forwardRef(function ProductCard(
           </div>
         </div>
 
-        {/* Add to Cart Button */}
-        {showAddToCart && (
-          <button
-            onClick={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              try {
-                await onAddToCart?.(product);
-                // The toast notification will be handled by the cart context
-              } catch (error) {
-                console.error("Error adding to cart:", error);
-              }
-            }}
-            className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            disabled={isAddingToCart}
-          >
-            <span className="flex items-center justify-center gap-2">
-              {isAddingToCart ? (
-                <>
-                  <svg
-                    className="w-4 h-4 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
+        {/* Push action area to bottom */}
+        <div className="mt-auto">
+          {/* Add to Cart Button */}
+          {showAddToCart && (
+            <button
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                  await onAddToCart?.(product);
+                  // The toast notification will be handled by the cart context
+                } catch (error) {
+                  console.error("Error adding to cart:", error);
+                }
+              }}
+              className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              disabled={isAddingToCart}
+            >
+              <span className="flex items-center justify-center gap-2">
+                {isAddingToCart ? (
+                  <>
+                    <svg
+                      className="w-4 h-4 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
                       stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
-                    />
-                  </svg>
-                  Add to Cart
-                </>
-              )}
-            </span>
-          </button>
-        )}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                      />
+                    </svg>
+                    Add to Cart
+                  </>
+                )}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
     </Card>
   );

@@ -74,7 +74,11 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 relative">
+          <Link
+            href="/"
+            aria-label="Go to homepage"
+            className="mx-auto h-20 w-20 relative block"
+          >
             <Image
               src="/images/IngaleLogo.png"
               alt="Ingale Pedha House"
@@ -82,7 +86,7 @@ const Login = () => {
               className="object-contain"
               priority
             />
-          </div>
+          </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Welcome back
           </h2>

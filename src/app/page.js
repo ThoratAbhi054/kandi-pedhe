@@ -335,14 +335,18 @@ function Homepage() {
             </div>
 
             {/* Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12 items-stretch">
               {products.slice(0, 8).map((product, index) => (
                 <div
                   key={product.id}
-                  className="animate-fade-in"
+                  className="animate-fade-in h-full"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <ProductCard product={product} onAddToCart={addToCart} />
+                  <ProductCard
+                    product={product}
+                    onAddToCart={addToCart}
+                    className="h-full"
+                  />
                 </div>
               ))}
             </div>
@@ -420,14 +424,18 @@ function Homepage() {
             </div>
 
             {/* Favorites Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12 items-stretch">
               {favorites.slice(0, 8).map((favorite, index) => (
                 <div
                   key={favorite.id}
-                  className="animate-fade-in"
+                  className="animate-fade-in h-full"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <ProductCard product={favorite} onAddToCart={addToCart} />
+                  <ProductCard
+                    product={favorite}
+                    onAddToCart={addToCart}
+                    className="h-full"
+                  />
                 </div>
               ))}
             </div>
