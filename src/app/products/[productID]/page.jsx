@@ -94,13 +94,10 @@ export default function Example(params) {
 
   const getReview = async () => {
     try {
-      const res = await fetch(`${API_URL}/cms/ratings/`, {
+      const res = await fetch(`${API_URL}/cms/ratings/?object_id=${id}`, {
         redirect: "follow",
         headers: {
           "Content-Type": "application/json",
-        },
-        params: {
-          object_id: id,
         },
       });
 
@@ -111,7 +108,7 @@ export default function Example(params) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setReviews(data?.results);
+      setReviews(data?.results || []);
     } catch (err) {
       console.log("Error fetching data:", err);
     }
@@ -307,22 +304,29 @@ export default function Example(params) {
             {/* Reviews */}
             <div className="mt-3">
               <h3 className="sr-only">Reviews</h3>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <div className="flex items-center">
                   {[0, 1, 2, 3, 4].map((rating) => (
                     <StarIcon
                       key={rating}
                       aria-hidden="true"
                       className={classNames(
-                        products.rating > rating
-                          ? "text-indigo-500"
+                        (products.rating || 0) > rating
+                          ? "text-yellow-400"
                           : "text-gray-300",
                         "h-5 w-5 flex-shrink-0"
                       )}
                     />
                   ))}
                 </div>
-                <p className="sr-only">{products.rating} out of 5 stars</p>
+                <span className="text-sm text-gray-600">
+                  {Number(products.rating || 0).toFixed(1)} / 5
+                </span>
+                {Array.isArray(reviews) && (
+                  <span className="text-sm text-gray-500">
+                    ({reviews.length} reviews)
+                  </span>
+                )}
               </div>
             </div>
 
@@ -488,67 +492,72 @@ export default function Example(params) {
                 <TabPanel className="-mb-10">
                   <h3 className="sr-only">Customer Reviews</h3>
 
-                  {reviews.map((review, reviewIdx) => (
-                    <div
-                      key={review.id}
-                      className="flex space-x-4 text-sm text-gray-500"
-                    >
-                      <div className="flex-none py-10">
-                        {review.user.avatar ? (
-                          <img
-                            alt="User Avatar"
-                            src={review.user.avatar}
-                            className="h-10 w-10 rounded-full text-gray-700"
-                          />
-                        ) : (
-                          // If avatar is null, show initials of first and last name
-                          <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-white font-bold">
-                            {/* {review.user?.first_name[0]?.toUpperCase()}
-                            {review.user?.last_name[0]?.toUpperCase()} */}
-                          </div>
-                        )}
-                      </div>
-
+                  {Array.isArray(reviews) && reviews.length > 0 ? (
+                    reviews.map((review, reviewIdx) => (
                       <div
-                        className={classNames(
-                          reviewIdx === 0 ? "" : "border-t border-gray-200",
-                          "py-10"
-                        )}
+                        key={review.id}
+                        className="flex space-x-4 text-sm text-gray-500"
                       >
-                        <h3 className="font-medium text-gray-900">
-                          {review.user.first_name} {review.user.last_name}
-                        </h3>
-                        <p>
-                          <time dateTime={review.created_at}>
-                            {formatDateToHumanReadable(review.created_at)}
-                          </time>
-                        </p>
-
-                        <div className="mt-4 flex items-center">
-                          {[0, 1, 2, 3, 4].map((rating) => (
-                            <StarIcon
-                              key={rating}
-                              aria-hidden="true"
-                              className={classNames(
-                                review.rating > rating
-                                  ? "text-yellow-400"
-                                  : "text-gray-300",
-                                "h-5 w-5 flex-shrink-0"
-                              )}
+                        <div className="flex-none py-10">
+                          {review.user?.avatar ? (
+                            <img
+                              alt="User Avatar"
+                              src={review.user.avatar}
+                              className="h-10 w-10 rounded-full text-gray-700"
                             />
-                          ))}
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold">
+                              {review.user?.first_name?.[0] || "?"}
+                              {review.user?.last_name?.[0] || ""}
+                            </div>
+                          )}
                         </div>
-                        <p className="sr-only">
-                          {review.rating} out of 5 stars
-                        </p>
 
                         <div
-                          dangerouslySetInnerHTML={{ __html: review.review }}
-                          className="prose prose-sm mt-4 max-w-none text-gray-500"
-                        />
+                          className={classNames(
+                            reviewIdx === 0 ? "" : "border-t border-gray-200",
+                            "py-10"
+                          )}
+                        >
+                          <h3 className="font-medium text-gray-900">
+                            {review.user?.first_name} {review.user?.last_name}
+                          </h3>
+                          <p>
+                            <time dateTime={review.created_at}>
+                              {formatDateToHumanReadable(review.created_at)}
+                            </time>
+                          </p>
+
+                          <div className="mt-4 flex items-center">
+                            {[0, 1, 2, 3, 4].map((rating) => (
+                              <StarIcon
+                                key={rating}
+                                aria-hidden="true"
+                                className={classNames(
+                                  (review.rating || 0) > rating
+                                    ? "text-yellow-400"
+                                    : "text-gray-300",
+                                  "h-5 w-5 flex-shrink-0"
+                                )}
+                              />
+                            ))}
+                          </div>
+                          <p className="sr-only">
+                            {review.rating} out of 5 stars
+                          </p>
+
+                          <div
+                            dangerouslySetInnerHTML={{ __html: review.review }}
+                            className="prose prose-sm mt-4 max-w-none text-gray-500"
+                          />
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="py-10 text-center text-sm text-gray-500">
+                      No reviews yet. Be the first to review this product.
                     </div>
-                  ))}
+                  )}
                 </TabPanel>
 
                 <TabPanel className="text-sm text-gray-500">

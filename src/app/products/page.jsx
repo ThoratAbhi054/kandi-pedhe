@@ -29,10 +29,12 @@ function classNames(...classes) {
 export default function ProductsPage() {
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(12);
+  const [totalCount, setTotalCount] = useState(0);
   const [filters, setFilters] = useState({
     title: "",
     category: "",
@@ -43,11 +45,26 @@ export default function ProductsPage() {
 
   const { addToCart } = useCart();
 
-  // Fetch Products
-  const getProducts = async () => {
+  // Fetch Products (server-side pagination)
+  const getProducts = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/cms/products/`, {
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("page_size", String(productsPerPage));
+
+      // Map filters/search to query params expected by API
+      if (searchQuery) {
+        params.set("search", searchQuery);
+      }
+      if (filters.title) params.set("title", filters.title);
+      if (filters.category) params.set("category", filters.category);
+      if (filters.price) params.set("price_lte", String(filters.price));
+      if (filters.is_discount) params.set("is_discount", "true");
+      if (filters.discounted_price)
+        params.set("discounted_price_lte", String(filters.discounted_price));
+
+      const res = await fetch(`${API_URL}/cms/products/?${params.toString()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +77,8 @@ export default function ProductsPage() {
 
       const data = await res.json();
       setProducts(data?.results || []);
-      setFilteredProducts(data?.results || []);
+      setTotalCount(Number(data?.count || 0));
+      setCurrentPage(page);
     } catch (err) {
       console.error("Error fetching products:", err);
     } finally {
@@ -68,65 +86,72 @@ export default function ProductsPage() {
     }
   };
 
-  // Filter and search products
+  // Refetch when filters/search/sort change
   useEffect(() => {
-    let filtered = products;
+    getProducts(1);
+  }, [searchQuery, filters, sortBy, productsPerPage]);
 
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (product) =>
-          product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  // Calculate pagination display values from API count
+  const totalProducts = totalCount;
+  const totalPages = Math.ceil(totalProducts / productsPerPage);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + products.length;
+
+  // Pagination handlers
+  const goToPage = (page) => {
+    getProducts(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
     }
+  };
 
-    // Category filter
-    if (filters.category) {
-      filtered = filtered.filter((product) =>
-        product.category?.toLowerCase().includes(filters.category.toLowerCase())
-      );
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
     }
+  };
 
-    // Price filter
-    if (filters.price) {
-      const price = parseFloat(filters.price);
-      filtered = filtered.filter((product) => {
-        const productPrice = product.discounted_price || product.price;
-        return productPrice <= price;
-      });
-    }
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
 
-    // Discount filter
-    if (filters.is_discount) {
-      filtered = filtered.filter(
-        (product) =>
-          product.discounted_price && product.discounted_price < product.price
-      );
-    }
-
-    // Sort products
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.title.localeCompare(b.title);
-        case "price-low":
-          return (
-            (a.discounted_price || a.price) - (b.discounted_price || b.price)
-          );
-        case "price-high":
-          return (
-            (b.discounted_price || b.price) - (a.discounted_price || a.price)
-          );
-        case "newest":
-          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-        default:
-          return 0;
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
       }
-    });
+    } else {
+      const startPage = Math.max(
+        1,
+        currentPage - Math.floor(maxVisiblePages / 2)
+      );
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
-    setFilteredProducts(filtered);
-  }, [products, searchQuery, filters, sortBy]);
+      if (startPage > 1) {
+        pageNumbers.push(1);
+        if (startPage > 2) {
+          pageNumbers.push("...");
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          pageNumbers.push("...");
+        }
+        pageNumbers.push(totalPages);
+      }
+    }
+
+    return pageNumbers;
+  };
 
   useEffect(() => {
     getProducts();
@@ -370,13 +395,21 @@ export default function ProductsPage() {
           <p className="text-sm text-gray-600">
             {loading ? (
               "Loading products..."
-            ) : (
+            ) : totalProducts > 0 ? (
               <>
-                Showing {filteredProducts.length} of {products.length} products
+                Showing {startIndex + 1} to {Math.min(endIndex, totalProducts)}{" "}
+                of {totalProducts} products
                 {searchQuery && ` for "${searchQuery}"`}
               </>
+            ) : (
+              "No products found"
             )}
           </p>
+          {totalPages > 1 && (
+            <p className="text-sm text-gray-500">
+              Page {currentPage} of {totalPages}
+            </p>
+          )}
         </div>
 
         {/* Product Grid */}
@@ -391,9 +424,9 @@ export default function ProductsPage() {
                 </div>
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
+          ) : products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product, index) => (
+              {products.map((product, index) => (
                 <div
                   key={product.id}
                   className="animate-fade-in"
@@ -441,21 +474,45 @@ export default function ProductsPage() {
         </section>
 
         {/* Pagination */}
-        {filteredProducts.length > 0 && (
+        {totalPages > 1 && (
           <nav className="mt-12 flex items-center justify-between border-t border-gray-200 pt-6">
+            {/* Mobile Pagination */}
             <div className="flex flex-1 justify-between sm:hidden">
-              <button className="btn btn-outline btn-sm">Previous</button>
-              <button className="btn btn-outline btn-sm">Next</button>
+              <button
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+                className={`btn btn-outline btn-sm ${
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Previous
+              </button>
+              <span className="flex items-center text-sm text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className={`btn btn-outline btn-sm ${
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                Next
+              </button>
             </div>
+
+            {/* Desktop Pagination */}
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">1</span> to{" "}
+                  Showing <span className="font-medium">{startIndex + 1}</span>{" "}
+                  to{" "}
                   <span className="font-medium">
-                    {Math.min(12, filteredProducts.length)}
+                    {Math.min(endIndex, totalProducts)}
                   </span>{" "}
-                  of{" "}
-                  <span className="font-medium">{filteredProducts.length}</span>{" "}
+                  of <span className="font-medium">{totalProducts}</span>{" "}
                   results
                 </p>
               </div>
@@ -464,20 +521,48 @@ export default function ProductsPage() {
                   className="isolate inline-flex -space-x-px rounded-md shadow-sm"
                   aria-label="Pagination"
                 >
-                  <button className="btn btn-outline btn-sm rounded-l-md">
+                  <button
+                    onClick={goToPrevPage}
+                    disabled={currentPage === 1}
+                    className={`btn btn-outline btn-sm rounded-l-md ${
+                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
                     Previous
                   </button>
-                  {[1, 2, 3, 4, 5].map((page) => (
-                    <button
-                      key={page}
-                      className={`btn btn-sm ${
-                        page === 1 ? "btn-primary" : "btn-outline"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button className="btn btn-outline btn-sm rounded-r-md">
+
+                  {getPageNumbers().map((pageNumber, index) =>
+                    pageNumber === "..." ? (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="px-3 py-2 text-sm text-gray-500"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={pageNumber}
+                        onClick={() => goToPage(pageNumber)}
+                        className={`btn btn-sm ${
+                          pageNumber === currentPage
+                            ? "btn-primary"
+                            : "btn-outline"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    className={`btn btn-outline btn-sm rounded-r-md ${
+                      currentPage === totalPages
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
                     Next
                   </button>
                 </nav>
