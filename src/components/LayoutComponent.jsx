@@ -154,13 +154,15 @@ const LayoutComponent = ({ children }) => {
                         >
                           Stores
                         </Link>
-                        <Link
-                          href="/my-purchases"
-                          className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-600 rounded-lg transition-colors duration-200"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          My Orders
-                        </Link>
+                        {isAuthenticated && (
+                          <Link
+                            href="/my-purchases"
+                            className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-600 rounded-lg transition-colors duration-200"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            My Orders
+                          </Link>
+                        )}
                         {categories?.results?.slice(0, 5).map((category) => (
                           <Link
                             key={category.id}
@@ -314,12 +316,14 @@ const LayoutComponent = ({ children }) => {
                         >
                           Stores
                         </Link>
-                        <Link
-                          href="/my-purchases"
-                          className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
-                        >
-                          My Orders
-                        </Link>
+                        {isAuthenticated && (
+                          <Link
+                            href="/my-purchases"
+                            className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                          >
+                            My Orders
+                          </Link>
+                        )}
                       </div>
 
                       {/* Right side actions */}
