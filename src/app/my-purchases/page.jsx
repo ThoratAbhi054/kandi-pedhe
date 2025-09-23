@@ -137,77 +137,89 @@ export default function MyPurchases() {
                 role="list"
                 className="divide-y divide-gray-200 border-b border-t border-gray-200"
               >
-                {purchases?.map((purchase) =>
-                  purchase.items?.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex flex-col sm:flex-row py-6 sm:py-8"
-                    >
-                      {/* Product Image */}
-                      <div className="flex-shrink-0 w-full sm:w-auto mb-4 sm:mb-0">
-                        <img
-                          alt={item.data?.title || "Product"}
-                          src={item.data?.thumbnail || "/placeholder-image.jpg"}
-                          className="w-full h-32 sm:h-24 sm:w-24 lg:h-32 lg:w-32 rounded-lg object-cover shadow-sm"
-                        />
-                      </div>
+                {purchases
+                  ?.map((purchase) => purchase.items || [])
+                  .flat()
+                  .map((item) => {
+                    const isProductItem = item.content_type === "productitem";
+                    const data = item.data || {};
+                    const product = isProductItem ? data.product || {} : data;
+                    const price = isProductItem
+                      ? Number(data.discounted_price || data.price || 0)
+                      : (Array.isArray(data.items) && data.items.length
+                          ? data.items.reduce((min, x) => {
+                              const p = Number(
+                                x.discounted_price || x.price || 0
+                              );
+                              return p < min ? p : min;
+                            }, Number.MAX_SAFE_INTEGER)
+                          : Number(data.discounted_price || data.price || 0)) ||
+                        0;
+                    const unit = isProductItem
+                      ? data.quantity_in_grams
+                        ? `${data.quantity_in_grams}g`
+                        : ""
+                      : data.items && data.items[0]?.quantity_in_grams
+                      ? `${data.items[0].quantity_in_grams}g`
+                      : "";
+                    return (
+                      <li
+                        key={item.id}
+                        className="flex flex-col sm:flex-row py-6 sm:py-8"
+                      >
+                        {/* Product Image */}
+                        <div className="flex-shrink-0 w-full sm:w-auto mb-4 sm:mb-0">
+                          <img
+                            alt={product.title || "Product"}
+                            src={product.thumbnail || "/placeholder-image.jpg"}
+                            className="w-full h-32 sm:h-24 sm:w-24 lg:h-32 lg:w-32 rounded-lg object-cover shadow-sm"
+                          />
+                        </div>
 
-                      {/* Product Details */}
-                      <div className="flex-1 sm:ml-4 lg:ml-6">
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 hover:text-indigo-600 transition-colors">
-                              {item.data?.title || "Unknown Product"}
-                            </h3>
-                            <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-                              {item.data?.description ||
-                                "Product from Ingale Pedha House"}
-                            </p>
-                          </div>
-
-                          {/* Price and Status */}
-                          <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-col sm:items-end">
-                            <p className="text-lg font-semibold text-gray-900">
-                              ₹
-                              {new Intl.NumberFormat("en-IN").format(
-                                item.data?.discounted_price ||
-                                  item.data?.price ||
-                                  0
-                              )}
-                            </p>
-                            {item.data?.original_price &&
-                              item.data.original_price >
-                                (item.data.discounted_price ||
-                                  item.data.price) && (
-                                <p className="text-sm text-gray-500 line-through">
-                                  ₹
-                                  {new Intl.NumberFormat("en-IN").format(
-                                    item.data.original_price
-                                  )}
+                        {/* Product Details */}
+                        <div className="flex-1 sm:ml-4 lg:ml-6">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base sm:text-lg font-medium text-gray-900 hover:text-indigo-600 transition-colors">
+                                {product.title || ""}
+                              </h3>
+                              <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                                {product.description || ""}
+                              </p>
+                              {unit && (
+                                <p className="mt-1 text-sm text-gray-600">
+                                  Pack: {unit}
                                 </p>
                               )}
-                            <div className="mt-2 flex items-center space-x-2">
-                              {item.inStock ? (
-                                <CheckIcon className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <ClockIcon className="h-4 w-4 text-gray-300" />
-                              )}
-                              <span
-                                className={`text-sm ${
-                                  item.inStock
-                                    ? "text-green-600"
-                                    : "text-gray-500"
-                                }`}
-                              >
-                                {item.inStock ? "Delivered" : "Processing"}
-                              </span>
+                            </div>
+
+                            {/* Price and Status */}
+                            <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-col sm:items-end">
+                              <p className="text-lg font-semibold text-gray-900">
+                                ₹{new Intl.NumberFormat("en-IN").format(price)}
+                              </p>
+                              <div className="mt-2 flex items-center space-x-2">
+                                {item.inStock ? (
+                                  <CheckIcon className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <ClockIcon className="h-4 w-4 text-gray-300" />
+                                )}
+                                <span
+                                  className={`text-sm ${
+                                    item.inStock
+                                      ? "text-green-600"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {item.inStock ? "Delivered" : "Processing"}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </li>
-                  ))
-                )}
+                      </li>
+                    );
+                  })}
               </ul>
             </section>
 

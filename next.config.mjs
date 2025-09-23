@@ -14,9 +14,19 @@ const nextConfig = {
         pathname: "/cms/**",
       },
       {
+        protocol: "http",
+        hostname: "api.ingalepedhas.in",
+        pathname: "/media/**",
+      },
+      {
         protocol: "https",
         hostname: "api.ingalepedhas.in",
         pathname: "/cms/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.ingalepedhas.in",
+        pathname: "/media/**",
       },
     ],
   },

@@ -95,6 +95,57 @@ export default function Example() {
     }
   }, [accessToken, supabaseSignOut]);
 
+  // Map API cart item to UI-friendly fields
+  const getDisplayFields = (item) => {
+    try {
+      if (item.content_type === "productitem") {
+        const data = item.data || {};
+        const product = data.product || {};
+        return {
+          title: product.title || "Product",
+          description:
+            product.description || "Delicious pedha from Ingale Pedha House",
+          thumbnail: getImageUrl(product.thumbnail),
+          price: Number(data.discounted_price || data.price || 0),
+          unit: data.quantity_in_grams ? `${data.quantity_in_grams}g` : "",
+        };
+      }
+      // Fallback for legacy 'product' entries
+      if (item.content_type === "product") {
+        const data = item.data || {};
+        // compute lowest price from variants if present
+        const lowest =
+          Array.isArray(data.items) && data.items.length
+            ? data.items.reduce((min, x) => {
+                const p = Number(x.discounted_price || x.price || 0);
+                return p < min ? p : min;
+              }, Number.MAX_SAFE_INTEGER)
+            : Number(data.discounted_price || data.price || 0);
+        const firstVariant =
+          Array.isArray(data.items) && data.items.length ? data.items[0] : null;
+        return {
+          title: data.title || "Product",
+          description:
+            data.description || "Delicious pedha from Ingale Pedha House",
+          thumbnail: getImageUrl(data.thumbnail),
+          price: lowest === Number.MAX_SAFE_INTEGER ? 0 : lowest,
+          unit: firstVariant?.quantity_in_grams
+            ? `${firstVariant.quantity_in_grams}g`
+            : "",
+        };
+      }
+    } catch (e) {
+      console.warn("Failed to map cart item:", e);
+    }
+    return {
+      title: "Product",
+      description: "Delicious pedha from Ingale Pedha House",
+      thumbnail: "/images/placeholder-product.jpg",
+      price: 0,
+      unit: "",
+    };
+  };
+
   const setDefaultAddress = async (addressId) => {
     try {
       const response = await fetch(`${API_URL}/iam/addresses/${addressId}/`, {
@@ -372,84 +423,89 @@ export default function Example() {
                 role="list"
                 className="divide-y divide-gray-200 border-b border-t border-gray-200"
               >
-                {cart?.map((cartItem) =>
-                  cartItem.items.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex flex-col sm:flex-row py-6 sm:py-8"
-                    >
-                      {/* Product Image */}
-                      <div className="flex-shrink-0 w-full sm:w-auto mb-4 sm:mb-0">
-                        <Image
-                          alt={item.data.title}
-                          src={
-                            getImageUrl(item.data.thumbnail) ||
-                            "/images/placeholder-product.jpg"
-                          }
-                          width={128}
-                          height={128}
-                          className="w-full h-32 sm:h-24 sm:w-24 lg:h-32 lg:w-32 rounded-lg object-cover shadow-sm"
-                        />
-                      </div>
+                {cart
+                  ?.map((cartItem) => cartItem.items)
+                  .flat()
+                  .map((item) => {
+                    const ui = getDisplayFields(item);
+                    return (
+                      <li
+                        key={item.id}
+                        className="flex flex-col sm:flex-row py-6 sm:py-8"
+                      >
+                        {/* Product Image */}
+                        <div className="flex-shrink-0 w-full sm:w-auto mb-4 sm:mb-0">
+                          <Image
+                            alt={ui.title}
+                            src={
+                              ui.thumbnail || "/images/placeholder-product.jpg"
+                            }
+                            width={128}
+                            height={128}
+                            className="w-full h-32 sm:h-24 sm:w-24 lg:h-32 lg:w-32 rounded-lg object-cover shadow-sm"
+                          />
+                        </div>
 
-                      {/* Product Details */}
-                      <div className="flex-1 sm:ml-4 lg:ml-6">
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 hover:text-indigo-600 transition-colors">
-                              {item.data.title}
-                            </h3>
-                            <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-                              {item.data.description ||
-                                "Delicious pedha from Ingale Pedha House"}
-                            </p>
-                          </div>
-
-                          {/* Price and Stock Status */}
-                          <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-col sm:items-end">
-                            <p className="text-lg font-semibold text-gray-900">
-                              ₹
-                              {new Intl.NumberFormat("en-IN").format(
-                                item.data.discounted_price ||
-                                  item.data.price ||
-                                  0
-                              )}
-                            </p>
-                            {item.data.original_price &&
-                              item.data.original_price >
-                                (item.data.discounted_price ||
-                                  item.data.price) && (
-                                <p className="text-sm text-gray-500 line-through">
-                                  ₹
-                                  {new Intl.NumberFormat("en-IN").format(
-                                    item.data.original_price
-                                  )}
+                        {/* Product Details */}
+                        <div className="flex-1 sm:ml-4 lg:ml-6">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base sm:text-lg font-medium text-gray-900 hover:text-indigo-600 transition-colors">
+                                {ui.title}
+                              </h3>
+                              <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                                {ui.description}
+                              </p>
+                              {ui.unit && (
+                                <p className="mt-1 text-sm text-gray-600">
+                                  Pack: {ui.unit}
                                 </p>
                               )}
-                            <div className="mt-2 flex items-center space-x-2">
-                              {item.inStock ? (
-                                <CheckIcon className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <ClockIcon className="h-4 w-4 text-gray-300" />
-                              )}
-                              <span
-                                className={`text-sm ${
-                                  item.inStock
-                                    ? "text-green-600"
-                                    : "text-gray-500"
-                                }`}
-                              >
-                                {item.inStock
-                                  ? "In stock"
-                                  : "Ships in a few weeks"}
-                              </span>
+                            </div>
+
+                            {/* Price and Stock Status */}
+                            <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-col sm:items-end">
+                              <p className="text-lg font-semibold text-gray-900">
+                                ₹
+                                {new Intl.NumberFormat("en-IN").format(
+                                  ui.price
+                                )}
+                              </p>
+                              {item.data.original_price &&
+                                item.data.original_price >
+                                  (item.data.discounted_price ||
+                                    item.data.price) && (
+                                  <p className="text-sm text-gray-500 line-through">
+                                    ₹
+                                    {new Intl.NumberFormat("en-IN").format(
+                                      item.data.original_price
+                                    )}
+                                  </p>
+                                )}
+                              <div className="mt-2 flex items-center space-x-2">
+                                {item.inStock ? (
+                                  <CheckIcon className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <ClockIcon className="h-4 w-4 text-gray-300" />
+                                )}
+                                <span
+                                  className={`text-sm ${
+                                    item.inStock
+                                      ? "text-green-600"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {item.inStock
+                                    ? "In stock"
+                                    : "Ships in a few weeks"}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </li>
-                  ))
-                )}
+                      </li>
+                    );
+                  })}
               </ul>
             </section>
 
