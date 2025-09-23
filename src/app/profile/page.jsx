@@ -259,17 +259,12 @@ export default function CompleteProfilePage() {
                       className="w-20 h-20 rounded-full object-cover"
                     />
                   ) : (
-                    <svg
-                      className="w-12 h-12 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <div className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">
+                        {(profile.first_name?.[0] || "?").toUpperCase()}
+                        {(profile.last_name?.[0] || "").toUpperCase()}
+                      </span>
+                    </div>
                   )}
                 </div>
                 <h2 className="text-xl font-bold text-white">

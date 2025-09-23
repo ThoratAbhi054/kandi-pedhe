@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import { clsx } from "clsx";
 import Link from "next/link";
 import Image from "next/image";
@@ -69,7 +69,7 @@ const CardFooter = forwardRef(function CardFooter(
 });
 
 const CardImage = forwardRef(function CardImage(
-  { className, src, alt, aspectRatio = "aspect-square", ...props },
+  { className, src, alt = "", aspectRatio = "aspect-square", ...props },
   ref
 ) {
   return (
@@ -77,7 +77,7 @@ const CardImage = forwardRef(function CardImage(
       <Image
         ref={ref}
         src={src}
-        alt={alt}
+        alt={alt || ""}
         width={400}
         height={300}
         className={clsx(
@@ -152,6 +152,50 @@ const ProductCard = forwardRef(function ProductCard(
 ) {
   const { isProductAddingToCart } = useCart();
   const isAddingToCart = isProductAddingToCart(product.id);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [itemQuantities, setItemQuantities] = useState({});
+  const [showVariants, setShowVariants] = useState(false);
+
+  // Get the lowest price from items array
+  const getLowestPrice = () => {
+    if (!product.items || product.items.length === 0) {
+      return product.discounted_price || product.price || 0;
+    }
+
+    const lowestPriceItem = product.items.reduce((min, item) => {
+      const price = parseFloat(item.discounted_price || item.price || 0);
+      const minPrice = parseFloat(min.discounted_price || min.price || 0);
+      return price < minPrice ? item : min;
+    });
+
+    return parseFloat(
+      lowestPriceItem.discounted_price || lowestPriceItem.price || 0
+    );
+  };
+
+  // Get available quantities from items
+  const getAvailableQuantities = () => {
+    if (!product.items || product.items.length === 0) {
+      return [{ id: 1, quantity_in_grams: "250", price: getLowestPrice() }];
+    }
+
+    return product.items.map((item) => ({
+      id: item.id,
+      quantity_in_grams: item.quantity_in_grams,
+      price: parseFloat(item.discounted_price || item.price || 0),
+    }));
+  };
+
+  const availableQuantities = getAvailableQuantities();
+  const lowestPrice = getLowestPrice();
+
+  // Set default selected item when component mounts or product changes
+  useEffect(() => {
+    if (availableQuantities.length > 0 && !selectedItem) {
+      setSelectedItem(availableQuantities[0]);
+    }
+  }, [product, availableQuantities, selectedItem]);
 
   const discount =
     product.original_price && product.discounted_price
@@ -278,92 +322,277 @@ const ProductCard = forwardRef(function ProductCard(
           </div>
         )}
 
-        {/* Price Section */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-gray-900">
-              ₹
-              {new Intl.NumberFormat("en-IN").format(
-                product.discounted_price || product.price
-              )}
-            </span>
-            {product.original_price &&
-              product.original_price >
-                (product.discounted_price || product.price) && (
-                <span className="text-sm text-gray-500 line-through">
-                  ₹
-                  {new Intl.NumberFormat("en-IN").format(
-                    product.original_price
+        {/* Pricing and CTA */}
+        {availableQuantities.length <= 1 ? (
+          <div className="space-y-2 mb-4">
+            {availableQuantities.map((item) => {
+              const grams = Number(item.quantity_in_grams || 0);
+              const per100 = grams > 0 ? (item.price / grams) * 100 : 0;
+              const qty = itemQuantities[item.id] || 0;
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2"
+                >
+                  <div>
+                    <div className="text-base font-semibold text-gray-900">
+                      ₹{new Intl.NumberFormat("en-IN").format(item.price)}
+                    </div>
+                    <div className="text-[11px] text-gray-500">
+                      ₹{per100.toFixed(1)}/100 g · {item.quantity_in_grams}g
+                    </div>
+                  </div>
+                  {qty <= 0 ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const next = 1;
+                        setItemQuantities((prev) => ({
+                          ...prev,
+                          [item.id]: next,
+                        }));
+                        onAddToCart?.({
+                          ...product,
+                          selectedItem: item,
+                          quantity: next,
+                        });
+                      }}
+                      className="text-sm font-semibold text-indigo-600"
+                    >
+                      ADD
+                    </button>
+                  ) : (
+                    <div className="inline-flex items-center gap-3 text-indigo-600">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const next = Math.max(
+                            0,
+                            (itemQuantities[item.id] || 0) - 1
+                          );
+                          setItemQuantities((prev) => ({
+                            ...prev,
+                            [item.id]: next,
+                          }));
+                          if (next > 0) {
+                            onAddToCart?.({
+                              ...product,
+                              selectedItem: item,
+                              quantity: next,
+                            });
+                          }
+                        }}
+                        className="text-lg px-2"
+                        aria-label="Decrease"
+                      >
+                        −
+                      </button>
+                      <span className="min-w-[1.5rem] text-center font-semibold text-gray-900">
+                        {qty}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const next = (itemQuantities[item.id] || 0) + 1;
+                          setItemQuantities((prev) => ({
+                            ...prev,
+                            [item.id]: next,
+                          }));
+                          onAddToCart?.({
+                            ...product,
+                            selectedItem: item,
+                            quantity: next,
+                          });
+                        }}
+                        className="text-lg px-2"
+                        aria-label="Increase"
+                      >
+                        +
+                      </button>
+                    </div>
                   )}
-                </span>
-              )}
+                </div>
+              );
+            })}
           </div>
-        </div>
-
-        {/* Push action area to bottom */}
-        <div className="mt-auto">
-          {/* Add to Cart Button */}
-          {showAddToCart && (
+        ) : (
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-gray-900">
+                ₹{new Intl.NumberFormat("en-IN").format(lowestPrice)}
+              </span>
+              <button
+                type="button"
+                className="text-sm text-gray-500 inline-flex items-center gap-1 hover:text-indigo-600"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowVariants(true);
+                }}
+                aria-label="Show pack options"
+              >
+                for {availableQuantities[0]?.quantity_in_grams}g
+                <svg
+                  className="w-3 h-3 text-indigo-600"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
             <button
-              onClick={async (e) => {
+              onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                try {
-                  await onAddToCart?.(product);
-                  // The toast notification will be handled by the cart context
-                } catch (error) {
-                  console.error("Error adding to cart:", error);
-                }
+                setShowVariants(true);
               }}
-              className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              disabled={isAddingToCart}
+              className="text-sm font-semibold text-indigo-600"
             >
-              <span className="flex items-center justify-center gap-2">
-                {isAddingToCart ? (
-                  <>
-                    <svg
-                      className="w-4 h-4 animate-spin"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
-                      />
-                    </svg>
-                    Add to Cart
-                  </>
-                )}
-              </span>
+              ADD
             </button>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Variant picker modal for multi-variant products */}
+        {showVariants && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            onClick={() => setShowVariants(false)}
+          >
+            <div
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-base font-semibold text-gray-900">
+                  Select a pack
+                </h4>
+                <button
+                  className="text-gray-500"
+                  onClick={() => setShowVariants(false)}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {availableQuantities.map((item) => {
+                  const grams = Number(item.quantity_in_grams || 0);
+                  const per100 = grams > 0 ? (item.price / grams) * 100 : 0;
+                  const qty = itemQuantities[item.id] || 0;
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2"
+                    >
+                      <div>
+                        <div className="text-base font-semibold text-gray-900">
+                          ₹{new Intl.NumberFormat("en-IN").format(item.price)}
+                        </div>
+                        <div className="text-[11px] text-gray-500">
+                          ₹{per100.toFixed(1)}/100 g · {item.quantity_in_grams}g
+                        </div>
+                      </div>
+                      {qty <= 0 ? (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const next = 1;
+                            setItemQuantities((prev) => ({
+                              ...prev,
+                              [item.id]: next,
+                            }));
+                          }}
+                          className="text-sm font-semibold text-indigo-600"
+                        >
+                          ADD
+                        </button>
+                      ) : (
+                        <div className="inline-flex items-center gap-3 text-indigo-600">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const next = Math.max(
+                                0,
+                                (itemQuantities[item.id] || 0) - 1
+                              );
+                              setItemQuantities((prev) => ({
+                                ...prev,
+                                [item.id]: next,
+                              }));
+                            }}
+                            className="text-lg px-2"
+                          >
+                            −
+                          </button>
+                          <span className="min-w-[1.5rem] text-center font-semibold text-gray-900">
+                            {qty}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const next = (itemQuantities[item.id] || 0) + 1;
+                              setItemQuantities((prev) => ({
+                                ...prev,
+                                [item.id]: next,
+                              }));
+                            }}
+                            className="text-lg px-2"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="text-sm font-semibold text-gray-900">
+                  Item total: ₹
+                  {new Intl.NumberFormat("en-IN").format(
+                    availableQuantities.reduce(
+                      (sum, it) =>
+                        sum +
+                        (itemQuantities[it.id] || 0) * Number(it.price || 0),
+                      0
+                    )
+                  )}
+                </div>
+                <button
+                  className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-semibold"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    availableQuantities.forEach((it) => {
+                      const qty = itemQuantities[it.id] || 0;
+                      if (qty > 0) {
+                        onAddToCart?.({
+                          ...product,
+                          selectedItem: it,
+                          quantity: qty,
+                        });
+                      }
+                    });
+                    setShowVariants(false);
+                  }}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

@@ -27,12 +27,15 @@ export const CartProvider = ({ children }) => {
   // We'll use a ref to store the toast function to avoid circular dependency
   const [toastFunctions, setToastFunctions] = useState(null);
 
-  // Fetch cart items from API
+  // Fetch cart items from API (only DRAFT carts)
   const fetchCart = useCallback(async () => {
     if (!accessToken) return;
 
     try {
-      const res = await fetch(`${API_URL}/cms/carts/`, {
+      const url = new URL(`${API_URL}/cms/carts/`);
+      url.searchParams.append("status", "DRAFT");
+
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
@@ -71,8 +74,9 @@ export const CartProvider = ({ children }) => {
 
     try {
       const payload = {
-        content_type: "product",
-        object_id: product.id,
+        content_type: "productitem",
+        object_id: product.selectedItem?.id,
+        quantity: product.quantity || 1,
       };
 
       const response = await fetch(`${API_URL}/cms/carts/add/`, {
