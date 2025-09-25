@@ -328,11 +328,13 @@ const LayoutComponent = ({ children }) => {
 
                       {/* Right side actions */}
                       <div className="ml-auto flex items-center space-x-4">
-                        {/* Search */}
+                        {/* Search - commented out as requested */}
+                        {/**
                         <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
                           <span className="sr-only">Search</span>
                           <MagnifyingGlassIcon className="size-6" />
                         </button>
+                        **/}
 
                         {/* User Actions */}
                         <div className="flex items-center space-x-2">

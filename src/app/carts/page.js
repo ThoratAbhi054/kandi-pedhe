@@ -98,6 +98,28 @@ export default function Example() {
   // Map API cart item to UI-friendly fields
   const getDisplayFields = (item) => {
     try {
+      // Handle new structure with content_object
+      if (item.content_object) {
+        const contentObject = item.content_object;
+        const product = contentObject.product || {};
+        return {
+          title: product.title || "Product",
+          description:
+            product.category?.description ||
+            "Delicious pedha from Ingale Pedha House",
+          thumbnail: getImageUrl(product.category?.thumbnail),
+          price: Number(
+            contentObject.discounted_price || contentObject.price || 0
+          ),
+          unit: contentObject.quantity_in_grams
+            ? `${contentObject.quantity_in_grams}g`
+            : "",
+          originalPrice: contentObject.price,
+          discountedPrice: contentObject.discounted_price,
+        };
+      }
+
+      // Handle legacy structure with data property
       if (item.content_type === "productitem") {
         const data = item.data || {};
         const product = data.product || {};
@@ -108,8 +130,11 @@ export default function Example() {
           thumbnail: getImageUrl(product.thumbnail),
           price: Number(data.discounted_price || data.price || 0),
           unit: data.quantity_in_grams ? `${data.quantity_in_grams}g` : "",
+          originalPrice: data.price,
+          discountedPrice: data.discounted_price,
         };
       }
+
       // Fallback for legacy 'product' entries
       if (item.content_type === "product") {
         const data = item.data || {};
@@ -132,10 +157,12 @@ export default function Example() {
           unit: firstVariant?.quantity_in_grams
             ? `${firstVariant.quantity_in_grams}g`
             : "",
+          originalPrice: data.price,
+          discountedPrice: data.discounted_price,
         };
       }
     } catch (e) {
-      console.warn("Failed to map cart item:", e);
+      console.warn("Failed to map cart item:", e, item);
     }
     return {
       title: "Product",
@@ -143,6 +170,8 @@ export default function Example() {
       thumbnail: "/images/placeholder-product.jpg",
       price: 0,
       unit: "",
+      originalPrice: 0,
+      discountedPrice: 0,
     };
   };
 
@@ -461,6 +490,23 @@ export default function Example() {
                                   Pack: {ui.unit}
                                 </p>
                               )}
+                              <div className="mt-2 flex items-center space-x-4">
+                                <p className="text-sm text-gray-600">
+                                  <span className="font-medium">Quantity:</span>{" "}
+                                  {item.quantity} pack
+                                  {item.quantity > 1 ? "s" : ""}
+                                </p>
+                                {ui.unit && (
+                                  <p className="text-sm text-gray-600">
+                                    <span className="font-medium">Total:</span>{" "}
+                                    {Math.round(
+                                      item.quantity *
+                                        parseFloat(ui.unit.replace("g", ""))
+                                    )}
+                                    g
+                                  </p>
+                                )}
+                              </div>
                             </div>
 
                             {/* Price and Stock Status */}
@@ -468,17 +514,22 @@ export default function Example() {
                               <p className="text-lg font-semibold text-gray-900">
                                 ₹
                                 {new Intl.NumberFormat("en-IN").format(
-                                  ui.price
+                                  ui.price * item.quantity
                                 )}
                               </p>
-                              {item.data.original_price &&
-                                item.data.original_price >
-                                  (item.data.discounted_price ||
-                                    item.data.price) && (
+                              <p className="text-sm text-gray-500">
+                                ₹
+                                {new Intl.NumberFormat("en-IN").format(
+                                  ui.price
+                                )}{" "}
+                                per pack
+                              </p>
+                              {ui.originalPrice &&
+                                ui.originalPrice > ui.discountedPrice && (
                                   <p className="text-sm text-gray-500 line-through">
                                     ₹
                                     {new Intl.NumberFormat("en-IN").format(
-                                      item.data.original_price
+                                      ui.originalPrice * item.quantity
                                     )}
                                   </p>
                                 )}

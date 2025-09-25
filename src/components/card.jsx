@@ -156,6 +156,9 @@ const ProductCard = forwardRef(function ProductCard(
   const [selectedItem, setSelectedItem] = useState(null);
   const [itemQuantities, setItemQuantities] = useState({});
   const [showVariants, setShowVariants] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(
+    product.is_favourite || false
+  );
 
   // Get the lowest price from items array
   const getLowestPrice = () => {
@@ -211,6 +214,10 @@ const ProductCard = forwardRef(function ProductCard(
     new Date(product.created_at) >
       new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
+  // Check if product has any discounted items
+  const hasDiscount =
+    product.items?.some((item) => item.is_discount) || discount;
+
   return (
     <Card
       ref={ref}
@@ -231,14 +238,19 @@ const ProductCard = forwardRef(function ProductCard(
 
         {/* Product Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {discount && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500 text-white shadow-lg">
-              -{discount}%
+          {hasDiscount && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg animate-pulse">
+              🔥 SALE
             </span>
           )}
           {isNew && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500 text-white shadow-lg">
-              NEW
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg">
+              ✨ NEW
+            </span>
+          )}
+          {product.info?.["Sugar Levl"] === "Low-sugar" && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
+              🍯 Low Sugar
             </span>
           )}
         </div>
@@ -248,15 +260,21 @@ const ProductCard = forwardRef(function ProductCard(
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            setIsWishlisted(!isWishlisted);
             // Add wishlist logic here
-            console.log("Added to wishlist:", product);
+            console.log("Toggled wishlist:", product);
           }}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white hover:scale-110 shadow-lg"
-          aria-label="Add to wishlist"
+          className={clsx(
+            "absolute top-3 right-3 p-2.5 rounded-full backdrop-blur-sm transition-all duration-200 hover:scale-110 shadow-lg",
+            isWishlisted
+              ? "bg-red-500 text-white opacity-100"
+              : "bg-white/90 text-gray-600 opacity-0 group-hover:opacity-100 hover:bg-white hover:text-red-500"
+          )}
+          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
           <svg
-            className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors"
-            fill="none"
+            className="w-4 h-4 transition-colors"
+            fill={isWishlisted ? "currentColor" : "none"}
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
@@ -278,8 +296,27 @@ const ProductCard = forwardRef(function ProductCard(
               // Add quick view logic here
               console.log("Quick view:", product);
             }}
-            className="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-gray-900 px-4 py-2 rounded-full font-medium text-sm shadow-lg hover:bg-gray-100"
+            className="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-gray-900 px-4 py-2 rounded-full font-medium text-sm shadow-lg hover:bg-gray-100 flex items-center gap-2"
           >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
             Quick View
           </button>
         </div>
@@ -287,8 +324,17 @@ const ProductCard = forwardRef(function ProductCard(
 
       {/* Product Content */}
       <div className="p-5 flex flex-col flex-1">
+        {/* Category Badge */}
+        {product.category && (
+          <div className="mb-2">
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {product.category.title}
+            </span>
+          </div>
+        )}
+
         {/* Product Title */}
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 mb-2 line-clamp-2">
+        <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 mb-2 line-clamp-2 leading-tight">
           {product.title}
         </h3>
 
@@ -296,6 +342,24 @@ const ProductCard = forwardRef(function ProductCard(
         <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
           {product.description}
         </p>
+
+        {/* Product Info Tags */}
+        {product.info && Object.keys(product.info).length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {Object.entries(product.info).map(
+              ([key, value]) =>
+                value &&
+                key && (
+                  <span
+                    key={key}
+                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700"
+                  >
+                    {key}: {value}
+                  </span>
+                )
+            )}
+          </div>
+        )}
 
         {/* Rating (if available) */}
         {product.rating && (
@@ -323,80 +387,32 @@ const ProductCard = forwardRef(function ProductCard(
         )}
 
         {/* Pricing and CTA */}
-        {availableQuantities.length <= 1 ? (
-          <div className="space-y-2 mb-4">
-            {availableQuantities.map((item) => {
-              const grams = Number(item.quantity_in_grams || 0);
-              const per100 = grams > 0 ? (item.price / grams) * 100 : 0;
-              const qty = itemQuantities[item.id] || 0;
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2"
-                >
-                  <div>
-                    <div className="text-base font-semibold text-gray-900">
-                      ₹{new Intl.NumberFormat("en-IN").format(item.price)}
+        <div className="mt-auto">
+          {availableQuantities.length <= 1 ? (
+            <div className="space-y-2">
+              {availableQuantities.map((item) => {
+                const grams = Number(item.quantity_in_grams || 0);
+                const per100 = grams > 0 ? (item.price / grams) * 100 : 0;
+                const qty = itemQuantities[item.id] || 0;
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div>
+                      <div className="text-lg font-bold text-gray-900">
+                        ₹{new Intl.NumberFormat("en-IN").format(item.price)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        ₹{per100.toFixed(1)}/100g · {item.quantity_in_grams}g
+                      </div>
                     </div>
-                    <div className="text-[11px] text-gray-500">
-                      ₹{per100.toFixed(1)}/100 g · {item.quantity_in_grams}g
-                    </div>
-                  </div>
-                  {qty <= 0 ? (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const next = 1;
-                        setItemQuantities((prev) => ({
-                          ...prev,
-                          [item.id]: next,
-                        }));
-                        onAddToCart?.({
-                          ...product,
-                          selectedItem: item,
-                          quantity: next,
-                        });
-                      }}
-                      className="text-sm font-semibold text-indigo-600"
-                    >
-                      ADD
-                    </button>
-                  ) : (
-                    <div className="inline-flex items-center gap-3 text-indigo-600">
+                    {qty <= 0 ? (
                       <button
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          const next = Math.max(
-                            0,
-                            (itemQuantities[item.id] || 0) - 1
-                          );
-                          setItemQuantities((prev) => ({
-                            ...prev,
-                            [item.id]: next,
-                          }));
-                          if (next > 0) {
-                            onAddToCart?.({
-                              ...product,
-                              selectedItem: item,
-                              quantity: next,
-                            });
-                          }
-                        }}
-                        className="text-lg px-2"
-                        aria-label="Decrease"
-                      >
-                        −
-                      </button>
-                      <span className="min-w-[1.5rem] text-center font-semibold text-gray-900">
-                        {qty}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          const next = (itemQuantities[item.id] || 0) + 1;
+                          const next = 1;
                           setItemQuantities((prev) => ({
                             ...prev,
                             [item.id]: next,
@@ -407,82 +423,153 @@ const ProductCard = forwardRef(function ProductCard(
                             quantity: next,
                           });
                         }}
-                        className="text-lg px-2"
-                        aria-label="Increase"
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-md"
                       >
-                        +
+                        Add to Cart
                       </button>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="inline-flex items-center gap-3 bg-white rounded-lg px-3 py-2 shadow-sm border">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const next = Math.max(
+                              0,
+                              (itemQuantities[item.id] || 0) - 1
+                            );
+                            setItemQuantities((prev) => ({
+                              ...prev,
+                              [item.id]: next,
+                            }));
+                            if (next > 0) {
+                              onAddToCart?.({
+                                ...product,
+                                selectedItem: item,
+                                quantity: next,
+                              });
+                            }
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                          aria-label="Decrease"
+                        >
+                          −
+                        </button>
+                        <span className="min-w-[2rem] text-center font-bold text-gray-900 text-lg">
+                          {qty}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const next = (itemQuantities[item.id] || 0) + 1;
+                            setItemQuantities((prev) => ({
+                              ...prev,
+                              [item.id]: next,
+                            }));
+                            onAddToCart?.({
+                              ...product,
+                              selectedItem: item,
+                              quantity: next,
+                            });
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                          aria-label="Increase"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-gray-900">
+                    ₹{new Intl.NumberFormat("en-IN").format(lowestPrice)}
+                  </span>
+                  <span className="text-sm text-gray-500">starting from</span>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gray-900">
-                ₹{new Intl.NumberFormat("en-IN").format(lowestPrice)}
-              </span>
+                <button
+                  type="button"
+                  className="text-sm text-blue-600 inline-flex items-center gap-1 hover:text-blue-700 mt-1"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowVariants(true);
+                  }}
+                  aria-label="Show pack options"
+                >
+                  {availableQuantities.length} pack sizes available
+                  <svg
+                    className="w-3 h-3"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
               <button
-                type="button"
-                className="text-sm text-gray-500 inline-flex items-center gap-1 hover:text-indigo-600"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setShowVariants(true);
                 }}
-                aria-label="Show pack options"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-md"
               >
-                for {availableQuantities[0]?.quantity_in_grams}g
-                <svg
-                  className="w-3 h-3 text-indigo-600"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                Choose Pack
               </button>
             </div>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowVariants(true);
-              }}
-              className="text-sm font-semibold text-indigo-600"
-            >
-              ADD
-            </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Variant picker modal for multi-variant products */}
         {showVariants && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             onClick={() => setShowVariants(false)}
           >
             <div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-4"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-scale-in"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-base font-semibold text-gray-900">
-                  Select a pack
-                </h4>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="text-lg font-bold text-gray-900">
+                    Choose Pack Size
+                  </h4>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Select the quantity you want to add to cart
+                  </p>
+                </div>
                 <button
-                  className="text-gray-500"
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                   onClick={() => setShowVariants(false)}
                 >
-                  ✕
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </button>
               </div>
-              <div className="space-y-2 max-h-80 overflow-y-auto">
+
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {availableQuantities.map((item) => {
                   const grams = Number(item.quantity_in_grams || 0);
                   const per100 = grams > 0 ? (item.price / grams) * 100 : 0;
@@ -490,14 +577,15 @@ const ProductCard = forwardRef(function ProductCard(
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2"
+                      className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
-                      <div>
-                        <div className="text-base font-semibold text-gray-900">
+                      <div className="flex-1">
+                        <div className="text-lg font-bold text-gray-900">
                           ₹{new Intl.NumberFormat("en-IN").format(item.price)}
                         </div>
-                        <div className="text-[11px] text-gray-500">
-                          ₹{per100.toFixed(1)}/100 g · {item.quantity_in_grams}g
+                        <div className="text-sm text-gray-500">
+                          ₹{per100.toFixed(1)}/100g · {item.quantity_in_grams}g
+                          pack
                         </div>
                       </div>
                       {qty <= 0 ? (
@@ -511,12 +599,12 @@ const ProductCard = forwardRef(function ProductCard(
                               [item.id]: next,
                             }));
                           }}
-                          className="text-sm font-semibold text-indigo-600"
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-md"
                         >
-                          ADD
+                          Add
                         </button>
                       ) : (
-                        <div className="inline-flex items-center gap-3 text-indigo-600">
+                        <div className="inline-flex items-center gap-3 bg-white rounded-lg px-3 py-2 shadow-sm border">
                           <button
                             onClick={(e) => {
                               e.preventDefault();
@@ -530,11 +618,11 @@ const ProductCard = forwardRef(function ProductCard(
                                 [item.id]: next,
                               }));
                             }}
-                            className="text-lg px-2"
+                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
                           >
                             −
                           </button>
-                          <span className="min-w-[1.5rem] text-center font-semibold text-gray-900">
+                          <span className="min-w-[2rem] text-center font-bold text-gray-900 text-lg">
                             {qty}
                           </span>
                           <button
@@ -547,7 +635,7 @@ const ProductCard = forwardRef(function ProductCard(
                                 [item.id]: next,
                               }));
                             }}
-                            className="text-lg px-2"
+                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
                           >
                             +
                           </button>
@@ -557,38 +645,49 @@ const ProductCard = forwardRef(function ProductCard(
                   );
                 })}
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <div className="text-sm font-semibold text-gray-900">
-                  Item total: ₹
-                  {new Intl.NumberFormat("en-IN").format(
-                    availableQuantities.reduce(
-                      (sum, it) =>
-                        sum +
-                        (itemQuantities[it.id] || 0) * Number(it.price || 0),
-                      0
-                    )
-                  )}
+
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-lg font-bold text-gray-900">
+                    Total: ₹
+                    {new Intl.NumberFormat("en-IN").format(
+                      availableQuantities.reduce(
+                        (sum, it) =>
+                          sum +
+                          (itemQuantities[it.id] || 0) * Number(it.price || 0),
+                        0
+                      )
+                    )}
+                  </div>
                 </div>
-                <button
-                  className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-semibold"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    availableQuantities.forEach((it) => {
-                      const qty = itemQuantities[it.id] || 0;
-                      if (qty > 0) {
-                        onAddToCart?.({
-                          ...product,
-                          selectedItem: it,
-                          quantity: qty,
-                        });
-                      }
-                    });
-                    setShowVariants(false);
-                  }}
-                >
-                  Confirm
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    className="flex-1 px-4 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
+                    onClick={() => setShowVariants(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition-all duration-200 transform hover:scale-105 shadow-md"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      availableQuantities.forEach((it) => {
+                        const qty = itemQuantities[it.id] || 0;
+                        if (qty > 0) {
+                          onAddToCart?.({
+                            ...product,
+                            selectedItem: it,
+                            quantity: qty,
+                          });
+                        }
+                      });
+                      setShowVariants(false);
+                    }}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               </div>
             </div>
           </div>

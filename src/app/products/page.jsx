@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   Disclosure,
@@ -46,50 +46,56 @@ export default function ProductsPage() {
   const { addToCart } = useCart();
 
   // Fetch Products (server-side pagination)
-  const getProducts = async (page = 1) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("page", String(page));
-      params.set("page_size", String(productsPerPage));
+  const getProducts = useCallback(
+    async (page = 1) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set("page", String(page));
+        params.set("page_size", String(productsPerPage));
 
-      // Map filters/search to query params expected by API
-      if (searchQuery) {
-        params.set("search", searchQuery);
+        // Map filters/search to query params expected by API
+        if (searchQuery) {
+          params.set("search", searchQuery);
+        }
+        if (filters.title) params.set("title", filters.title);
+        if (filters.category) params.set("category", filters.category);
+        if (filters.price) params.set("price_lte", String(filters.price));
+        if (filters.is_discount) params.set("is_discount", "true");
+        if (filters.discounted_price)
+          params.set("discounted_price_lte", String(filters.discounted_price));
+
+        const res = await fetch(
+          `${API_URL}/cms/products/?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setProducts(data?.results || []);
+        setTotalCount(Number(data?.count || 0));
+        setCurrentPage(page);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      } finally {
+        setLoading(false);
       }
-      if (filters.title) params.set("title", filters.title);
-      if (filters.category) params.set("category", filters.category);
-      if (filters.price) params.set("price_lte", String(filters.price));
-      if (filters.is_discount) params.set("is_discount", "true");
-      if (filters.discounted_price)
-        params.set("discounted_price_lte", String(filters.discounted_price));
-
-      const res = await fetch(`${API_URL}/cms/products/?${params.toString()}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-      setProducts(data?.results || []);
-      setTotalCount(Number(data?.count || 0));
-      setCurrentPage(page);
-    } catch (err) {
-      console.error("Error fetching products:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [searchQuery, filters, productsPerPage]
+  );
 
   // Refetch when filters/search/sort change
   useEffect(() => {
     getProducts(1);
-  }, [searchQuery, filters, sortBy, productsPerPage]);
+  }, [getProducts]);
 
   // Calculate pagination display values from API count
   const totalProducts = totalCount;
@@ -155,7 +161,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     getProducts();
-  }, []);
+  }, [getProducts]);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -178,102 +184,75 @@ export default function ProductsPage() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Search and Filters */}
         <div className="mb-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+              {/* Search Bar */}
+              <div className="relative flex-1 max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search for delicious sweets..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                  >
+                    <XMarkIcon className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
               </div>
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="input pl-10 w-full"
-              />
-            </div>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-4">
-              <label
-                htmlFor="sort"
-                className="text-sm font-medium text-gray-700"
-              >
-                Sort by:
-              </label>
-              <select
-                id="sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="input w-40"
-              >
-                <option value="name">Name</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="newest">Newest First</option>
-              </select>
+              {/* Sort and Filter Controls */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="sort"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Sort by:
+                  </label>
+                  <select
+                    id="sort"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  >
+                    <option value="name">Name A-Z</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="newest">Newest First</option>
+                  </select>
+                </div>
 
-              {/* Mobile Filter Button */}
-              <button
-                onClick={() => setOpen(true)}
-                className="lg:hidden btn btn-outline btn-sm flex items-center gap-2"
-              >
-                <AdjustmentsHorizontalIcon className="h-4 w-4" />
-                Filters
-              </button>
+                {/* Mobile Filter Button */}
+                <button
+                  onClick={() => setOpen(true)}
+                  className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <AdjustmentsHorizontalIcon className="h-4 w-4" />
+                  <span className="text-sm font-medium">Filters</span>
+                  {(filters.price ||
+                    filters.category ||
+                    filters.is_discount) && (
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Desktop Filters */}
         <div className="hidden lg:block mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price Range (₹)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Max price"
-                  value={filters.price}
-                  onChange={(e) =>
-                    setFilters({ ...filters, price: e.target.value })
-                  }
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter category"
-                  value={filters.category}
-                  onChange={(e) =>
-                    setFilters({ ...filters, category: e.target.value })
-                  }
-                  className="input"
-                />
-              </div>
-              <div className="flex items-end">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={filters.is_discount}
-                    onChange={(e) =>
-                      setFilters({ ...filters, is_discount: e.target.checked })
-                    }
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    On Sale Only
-                  </span>
-                </label>
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
               <button
                 onClick={() =>
                   setFilters({
@@ -284,10 +263,88 @@ export default function ProductsPage() {
                     discounted_price: "",
                   })
                 }
-                className="btn btn-ghost btn-sm"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
-                Clear All Filters
+                Clear All
               </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Max Price (₹)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    placeholder="Enter max price"
+                    value={filters.price}
+                    onChange={(e) =>
+                      setFilters({ ...filters, price: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {filters.price && (
+                    <button
+                      onClick={() => setFilters({ ...filters, price: "" })}
+                      className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Enter category name"
+                    value={filters.category}
+                    onChange={(e) =>
+                      setFilters({ ...filters, category: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {filters.category && (
+                    <button
+                      onClick={() => setFilters({ ...filters, category: "" })}
+                      className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-end">
+                <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={filters.is_discount}
+                    onChange={(e) =>
+                      setFilters({ ...filters, is_discount: e.target.checked })
+                    }
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-3 text-sm font-medium text-gray-700">
+                    🔥 On Sale Only
+                  </span>
+                </label>
+              </div>
+
+              <div className="flex items-end">
+                <div className="text-sm text-gray-500">
+                  {totalProducts > 0 && (
+                    <span className="font-medium text-gray-700">
+                      {totalProducts} products found
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -298,54 +355,76 @@ export default function ProductsPage() {
           onClose={setOpen}
           className="relative z-40 lg:hidden"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
           <div className="fixed inset-0 z-40 flex">
-            <Dialog.Panel className="relative flex w-full max-w-xs flex-col overflow-y-auto bg-white pb-12 shadow-xl">
-              <div className="flex px-4 pb-2 pt-5">
+            <Dialog.Panel className="relative flex w-full max-w-sm flex-col overflow-y-auto bg-white shadow-2xl">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Filter Products
+                </h2>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="-m-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400"
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <span className="sr-only">Close menu</span>
-                  <XMarkIcon className="h-6 w-6" />
+                  <XMarkIcon className="h-5 w-5 text-gray-500" />
                 </button>
-                <h2 className="ml-4 text-lg font-medium text-gray-900">
-                  Filters
-                </h2>
               </div>
 
-              <div className="px-4 py-6 space-y-6">
+              <div className="px-6 py-6 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Price Range (₹)
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Max Price (₹)
                   </label>
-                  <input
-                    type="number"
-                    placeholder="Max price"
-                    value={filters.price}
-                    onChange={(e) =>
-                      setFilters({ ...filters, price: e.target.value })
-                    }
-                    className="input"
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      placeholder="Enter max price"
+                      value={filters.price}
+                      onChange={(e) =>
+                        setFilters({ ...filters, price: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {filters.price && (
+                      <button
+                        onClick={() => setFilters({ ...filters, price: "" })}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
                     Category
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Enter category"
-                    value={filters.category}
-                    onChange={(e) =>
-                      setFilters({ ...filters, category: e.target.value })
-                    }
-                    className="input"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Enter category name"
+                      value={filters.category}
+                      onChange={(e) =>
+                        setFilters({ ...filters, category: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {filters.category && (
+                      <button
+                        onClick={() => setFilters({ ...filters, category: "" })}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
+
                 <div>
-                  <label className="flex items-center">
+                  <label className="flex items-center p-4 border border-gray-300 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors">
                     <input
                       type="checkbox"
                       checked={filters.is_discount}
@@ -355,35 +434,46 @@ export default function ProductsPage() {
                           is_discount: e.target.checked,
                         })
                       }
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <span className="ml-2 text-sm text-gray-700">
-                      On Sale Only
+                    <span className="ml-3 text-sm font-medium text-gray-700">
+                      🔥 Show only products on sale
                     </span>
                   </label>
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setOpen(false)}
-                    className="btn btn-primary flex-1"
-                  >
-                    Apply Filters
-                  </button>
-                  <button
-                    onClick={() => {
-                      setFilters({
-                        title: "",
-                        category: "",
-                        price: "",
-                        is_discount: false,
-                        discounted_price: "",
-                      });
-                      setOpen(false);
-                    }}
-                    className="btn btn-outline flex-1"
-                  >
-                    Clear All
-                  </button>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="text-sm text-gray-500 mb-4">
+                    {totalProducts > 0 && (
+                      <span className="font-medium text-gray-700">
+                        {totalProducts} products found
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setOpen(false)}
+                      className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-md"
+                    >
+                      Apply Filters
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilters({
+                          title: "",
+                          category: "",
+                          price: "",
+                          is_discount: false,
+                          discounted_price: "",
+                        });
+                        setOpen(false);
+                      }}
+                      className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  </div>
                 </div>
               </div>
             </Dialog.Panel>
@@ -417,10 +507,20 @@ export default function ProductsPage() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(8)].map((_, index) => (
-                <div key={index} className="card p-6">
-                  <div className="skeleton h-48 w-full mb-4" />
-                  <div className="skeleton h-4 w-3/4 mb-2" />
-                  <div className="skeleton h-4 w-1/2" />
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-pulse"
+                >
+                  <div className="aspect-[4/3] bg-gray-200" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                    <div className="flex justify-between items-center pt-2">
+                      <div className="h-6 bg-gray-200 rounded w-16" />
+                      <div className="h-8 bg-gray-200 rounded w-20" />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -437,9 +537,14 @@ export default function ProductsPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="mx-auto h-24 w-24 text-gray-400 mb-4">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="text-center py-16">
+              <div className="mx-auto h-32 w-32 text-gray-300 mb-6">
+                <svg
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  className="w-full h-full"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -448,27 +553,46 @@ export default function ProductsPage() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 No products found
               </h3>
-              <p className="text-gray-500 mb-4">
-                Try adjusting your search or filter criteria.
+              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                We couldn&apos;t find any products matching your search
+                criteria. Try adjusting your filters or search terms.
               </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilters({
-                    title: "",
-                    category: "",
-                    price: "",
-                    is_discount: false,
-                    discounted_price: "",
-                  });
-                }}
-                className="btn btn-primary"
-              >
-                Clear Filters
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilters({
+                      title: "",
+                      category: "",
+                      price: "",
+                      is_discount: false,
+                      discounted_price: "",
+                    });
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-md"
+                >
+                  Clear All Filters
+                </button>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilters({
+                      title: "",
+                      category: "",
+                      price: "",
+                      is_discount: false,
+                      discounted_price: "",
+                    });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  View All Products
+                </button>
+              </div>
             </div>
           )}
         </section>
